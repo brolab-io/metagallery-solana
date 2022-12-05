@@ -20,12 +20,14 @@ const CollectionsPage = () => {
   const { connection } = useConnection();
   const { publicKey } = useWallet();
 
+  const [isLoading, setIsLoading] = useState(true);
   const [assets, setAssets] = useState<Metadata[]>([]);
 
   const getCollections = useCallback(async () => {
     if (publicKey) {
       const assets = await getAssetsFromAddress(connection, new PublicKey(publicKey.toBase58()));
-      setAssets(assets);
+      setAssets(assets.filter((asset) => "collectionDetails" in asset && asset.collectionDetails));
+      setIsLoading(false);
     }
   }, [connection, publicKey]);
 
@@ -40,7 +42,7 @@ const CollectionsPage = () => {
           <BreadCrumb items={breadCrumbItems} />
           <Button href="/collections/mint">Create New</Button>
         </div>
-        <ListCollection collections={assets} />
+        <ListCollection isLoading={isLoading} collections={assets} />
       </Container>
     </>
   );

@@ -10,12 +10,11 @@ type Props = {
 
 const CollectionItemPage = ({ params: { address } }: Props) => {
   const router = useRouter();
-  // useEffect(() => {
-  //   console.log("CollectionItemPage", router);
-  //   if (router) {
-  //     router.replace(`/collections/${collectionId}/nfts`);
-  //   }
-  // }, [collectionId, router]);
+  useEffect(() => {
+    if (router) {
+      router.replace(`/collections/${address}/nfts`);
+    }
+  }, [address, router]);
   return null;
 };
 

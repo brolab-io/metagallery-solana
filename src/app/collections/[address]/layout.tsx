@@ -5,9 +5,11 @@ import { useConnection } from "@solana/wallet-adapter-react";
 /* eslint-disable @next/next/no-img-element */
 import Image from "next/image";
 import { useCallback, useEffect, useState, useMemo } from "react";
+import CollectionItemTabs from "../../../components/Collection/CollectionItemTabs";
 import Button from "../../../components/__UI/Button";
 import Container from "../../../components/__UI/Container";
 import H1 from "../../../components/__UI/H1";
+import Loading from "../../../components/__UI/Loading";
 import { getMetaData, getNftMetadataFromUri } from "../../../services/nft.service";
 import CollectionContext from "./context";
 
@@ -43,19 +45,24 @@ const CollectionLayout = ({ children, params: { address } }: Props & { children:
   );
 
   if (!collection) {
-    return null;
+    return <Loading label="Loading collection..." />;
   }
 
   return (
     <CollectionContext.Provider value={contextValue}>
       <div className="relative group">
         <div className="min-h-[60vh]">
-          <Image
-            src={metadata?.image || "https://picsum.photos/530/354"}
-            className="object-cover w-full"
-            fill
-            alt="Gallery"
-          />
+          {metadata?.image ? (
+            <Image
+              src={`/api/imageProxy?imageUrl=${metadata?.image}`}
+              alt="Gallery"
+              className="object-cover w-full"
+              quality={100}
+              fill
+            />
+          ) : (
+            <div className="w-full h-full"></div>
+          )}
         </div>
         <div className="absolute inset-0 flex items-center justify-center group-hover:bg-[#0C1226BF] transition-colors duration-500">
           <Button
@@ -80,7 +87,7 @@ const CollectionLayout = ({ children, params: { address } }: Props & { children:
         </div>
       </div>
       <Container className="py-48">
-        {/* <CollectionItemTabs owner={collection.owner} /> */}
+        <CollectionItemTabs owner={collection.updateAuthority} />
         {children}
       </Container>
     </CollectionContext.Provider>

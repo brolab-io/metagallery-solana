@@ -9,7 +9,9 @@ import BreadCrumb from "../../../../components/__UI/Breadcrumb";
 import Button from "../../../../components/__UI/Button";
 import Container from "../../../../components/__UI/Container";
 import LableInput from "../../../../components/__UI/LableInput";
+import { uploadMetadata } from "../../../../services/ipfs/upload";
 import { mint } from "../../../../services/nft.service";
+import { buildMetadata } from "../../../../services/util.service";
 import { useCollectionContext } from "../context";
 
 type CreatorShare = {
@@ -59,7 +61,6 @@ const MintNftPage = ({ params: { address } }: Props) => {
   const { connection } = useConnection();
   const { collection, metadata } = useCollectionContext();
   const provider = useWallet();
-  const router = useRouter();
 
   const selectFile = useCallback(() => {
     fileInputRef.current?.click();
@@ -68,32 +69,68 @@ const MintNftPage = ({ params: { address } }: Props) => {
   const onSubmit = useCallback(
     async (data: FormValues) => {
       setIsLoading(true);
+
+      if (!provider.publicKey) {
+        toast.error("Please firstly connect your wallet");
+        return;
+      }
+
       let toastId: ReturnType<typeof toast.info> | null = null;
 
       try {
         const collectionName = metadata?.name || collection?.data.name;
         toastId = toast.info(
-          collectionName ? `Minting ${collectionName} NFT...` : "Minting NFT...",
+          collectionName
+            ? `Minting ${collectionName} NFT, please wait...`
+            : "Minting NFT, please wait...",
           {
             autoClose: false,
           }
         );
+
+        const _metadata = buildMetadata({
+          name: data.name,
+          symbol: data.symbol,
+          fileType: data.files[0].type,
+          description: `NFT for BigRich`,
+          seller_fee_basis_points: data.sellerFeeBasisPoints,
+          creators: data.creators,
+        });
+
+        const url = await uploadMetadata(data.files[0], _metadata);
+        data.uri = url;
+
         const txid = await mint("masteredition", provider, [data], connection);
+
         toast.update(toastId, {
-          render: collectionName ? `Minting ${collectionName} NFT...` : "Minting NFT...",
+          render: (
+            <a
+              target="_blank"
+              href={`https://explorer.solana.com/tx/${txid}?cluster=devnet`}
+              rel="noreferrer"
+            >
+              NFT minted successfully, View on Solana Explorer
+            </a>
+          ),
           type: "success",
+          isLoading: false,
           autoClose: 3000,
         });
-        console.log(txid);
         // router.push(`/nfts/${address}`);
       } catch (error) {
         console.warn(error);
-        toast.error((error as Error).message);
+        if (toastId) {
+          toast.update(toastId, {
+            render: (error as Error).message,
+            type: "error",
+            isLoading: false,
+            autoClose: 3000,
+          });
+        } else {
+          toast.error((error as Error).message);
+        }
       } finally {
         setIsLoading(false);
-        if (toastId) {
-          toast.dismiss(toastId);
-        }
       }
     },
     [collection?.data.name, connection, metadata?.name, provider]
@@ -106,6 +143,7 @@ const MintNftPage = ({ params: { address } }: Props) => {
   return (
     <Container className="pb-6 sm:pb-8 md:pb-12 lg:pb-16 xl:pb-20">
       <BreadCrumb items={breadCrumbItems} />
+
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col space-y-6 text-white">
         <b className="text-[24px] mt-[29px] lg:mt-[58px]">Import Image, Video or Audio *</b>
         <span className="text-[24px] font-light">
@@ -137,7 +175,7 @@ const MintNftPage = ({ params: { address } }: Props) => {
 
         <LableInput
           label="Name *"
-          placeholder="Name of the collection (e.g. My Collection)"
+          placeholder="Name of the nft (e.g. My NFT)"
           {...register("name", {
             required: "Name is required",
             maxLength: {
@@ -149,23 +187,12 @@ const MintNftPage = ({ params: { address } }: Props) => {
 
         <LableInput
           label="Symbol *"
-          placeholder="Symbol of the collection (e.g. MYCOL)"
+          placeholder="Symbol of the nft (e.g. NFT)"
           {...register("symbol", {
             required: "Symbol is required",
             maxLength: {
               value: 10,
               message: "Name must be less than 10 characters",
-            },
-          })}
-        />
-
-        <LableInput
-          label="URI *"
-          placeholder="URI of the collection"
-          {...register("uri", {
-            maxLength: {
-              value: 200,
-              message: "URI must be less than 200 characters",
             },
           })}
         />

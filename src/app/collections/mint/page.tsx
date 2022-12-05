@@ -1,7 +1,7 @@
 "use client";
 
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useForm } from "react-hook-form";
 import BreadCrumb from "../../../components/__UI/Breadcrumb";
 import Button from "../../../components/__UI/Button";
@@ -9,6 +9,10 @@ import Container from "../../../components/__UI/Container";
 import LableInput from "../../../components/__UI/LableInput";
 import { checkCollection, mint } from "../../../services/nft.service";
 import { toast } from "react-toastify";
+import BoxFrame from "../../../components/__UI/BoxFrame";
+import { uploadMetadata } from "../../../services/ipfs/upload";
+import { buildMetadata } from "../../../services/util.service";
+import CreatorShare from "../../../components/__UI/CreatorShare";
 
 type CreatorShare = {
   creator: string;
@@ -40,11 +44,11 @@ const breadCrumbItems = [
 const MintCollectionPage: React.FC = () => {
   // ### FORM
   const [isLoading, setIsLoading] = useState(false);
-  const { register, handleSubmit } = useForm<FormValues>({
+  const { register, handleSubmit, watch } = useForm<FormValues>({
     defaultValues: {
       collection: "",
       name: "Collection X",
-      uri: "https://nftbigrich.s3.amazonaws.com/hoa/test_nft.json",
+      uri: "",
       symbol: "COLX",
       sellerFeeBasisPoints: 0,
       size: 1,
@@ -55,34 +59,121 @@ const MintCollectionPage: React.FC = () => {
 
   const { connection } = useConnection();
   const provider = useWallet();
+  const fileInputRef = useRef<HTMLInputElement>();
+
+  const selectFile = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
 
   const onSubmit = useCallback(
     async (data: FormValues) => {
       setIsLoading(true);
+
+      if (!provider.publicKey) {
+        toast.error("Please firstly connect your wallet");
+        return;
+      }
+
+      let toastId: ReturnType<typeof toast.info> | null = null;
+
       try {
         const isCollection =
           !data.collection || (await checkCollection(connection, data.collection));
-
         if (!isCollection) {
           toast.error("Collection is not valid");
           return;
         }
+
+        toastId = toast.info("Minting collection, please wait...", {
+          autoClose: false,
+          isLoading: true,
+        });
+
+        const metadata = buildMetadata({
+          name: data.name,
+          symbol: data.symbol,
+          fileType: data.files[0].type,
+          description: `NFT for BigRich`,
+          seller_fee_basis_points: data.sellerFeeBasisPoints,
+          creators: data.creators,
+        });
+
+        const url = await uploadMetadata(data.files[0], metadata);
+        data.uri = url;
+
         const txid = await mint("collection", provider, [data], connection);
-        toast.success("Mint success");
+        toast.update(toastId, {
+          render: (
+            <a
+              target="_blank"
+              href={`https://explorer.solana.com/tx/${txid}?cluster=devnet`}
+              rel="noreferrer"
+            >
+              Collection minted successfully, View on Solana Explorer
+            </a>
+          ),
+          type: "success",
+          isLoading: false,
+          autoClose: 3000,
+        });
         console.log(txid);
       } catch (error) {
-        console.log(error);
-        toast.error((error as Error).message);
+        console.warn(error);
+        if (toastId) {
+          toast.update(toastId, {
+            render: (error as Error).message,
+            type: "error",
+            isLoading: false,
+            autoClose: 3000,
+          });
+        } else {
+          toast.error((error as Error).message);
+        }
+      } finally {
         setIsLoading(false);
       }
     },
     [connection, provider]
   );
 
+  const { ref: fileRef, ...fields } = register("files");
+
+  const files = watch("files");
+
   return (
     <Container className="py-6 sm:py-8 md:py-12 lg:py-16 xl:py-20">
       <BreadCrumb items={breadCrumbItems} />
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col space-y-6 text-white">
+        <b className="text-[24px] mt-[29px] lg:mt-[58px]">Import Image, Video or Audio *</b>
+        <span className="text-[24px] font-light">
+          File types supported: JPG, PNG, GIF, SVG, MP3, WAV, MP4. Max size: 50 MB
+        </span>
+        <BoxFrame className="flex justify-center py-[164px] relative overflow-hidden">
+          {files && files.length > 0 && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              alt="SelectedFile"
+              src={URL.createObjectURL(files[0])}
+              className="absolute inset-y-0 object-contain -translate-x-1/2 left-1/2"
+            />
+          )}
+          <div className="absolute -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2">
+            <Button type="button" onClick={selectFile}>
+              Upload File
+            </Button>
+          </div>
+        </BoxFrame>
+        <input
+          type="file"
+          ref={(ref) => {
+            fileRef(ref);
+            fileInputRef.current = ref || undefined;
+          }}
+          {...fields}
+          accept="image/*,video/*,audio/*"
+          className="hidden"
+        />
+
         <LableInput
           label="Name *"
           placeholder="Name of the collection (e.g. My Collection)"
@@ -103,17 +194,6 @@ const MintCollectionPage: React.FC = () => {
             maxLength: {
               value: 10,
               message: "Name must be less than 10 characters",
-            },
-          })}
-        />
-
-        <LableInput
-          label="URI *"
-          placeholder="URI of the collection"
-          {...register("uri", {
-            maxLength: {
-              value: 200,
-              message: "URI must be less than 200 characters",
             },
           })}
         />
@@ -155,6 +235,8 @@ const MintCollectionPage: React.FC = () => {
           })}
           type="number"
         />
+
+        <CreatorShare />
 
         <Button className="self-start" type="submit" disabled={isLoading}>
           <span className="ml-2">{isLoading ? "Minting..." : "Mint"}</span>

@@ -1,14 +1,8 @@
-import {
-  PublicKey,
-  Connection,
-  Transaction
-} from '@solana/web3.js';
+import { PublicKey, Connection, Transaction } from "@solana/web3.js";
 
-import {
-  createSplToken
-} from './transactions/common';
-import { verifySizeCollection }from './verify-collection';
-import BN from 'bn.js';
+import { createSplToken } from "./transactions/common";
+import { verifySizeCollection } from "./verify-collection";
+import BN from "bn.js";
 import {
   createCreateMasterEditionV3Instruction,
   createCreateMetadataAccountV3Instruction,
@@ -18,30 +12,30 @@ import {
   Uses,
   UseMethod,
   PROGRAM_ADDRESS,
-} from '@metaplex-foundation/mpl-token-metadata';
-import updateTokenData from './transactions/create-token-data';
+} from "@metaplex-foundation/mpl-token-metadata";
+import updateTokenData from "./transactions/create-token-data";
 export async function mintMasterEdition({
   connection,
   address,
   uri,
-  symbol = '',
+  symbol = "",
   name,
-  collection = '',
+  collection = "",
   creators = [],
   sellerFeeBasisPoints,
   maxSupply,
   tokenPower,
 }: {
-  connection: Connection,
-  address: string,
-  maxSupply: number,
-  name: string,
-  sellerFeeBasisPoints: number,
-  uri: string,
-  collection: string,
-  creators: {address: string, verified: boolean, share: number} [],
-  symbol: string,
-  tokenPower: number,
+  connection: Connection;
+  address: string;
+  maxSupply: number;
+  name: string;
+  sellerFeeBasisPoints: number;
+  uri: string;
+  collection: string;
+  creators: { address: string; verified: boolean; share: number }[];
+  symbol: string;
+  tokenPower: number;
 }) {
   console.log({
     address,
@@ -55,52 +49,46 @@ export async function mintMasterEdition({
     tokenPower,
   });
   const walletAddress = new PublicKey(address);
-  const {
-    mint,
-    createAccount,
-    createInitializeMint,
-    createAta,
-    mintTo
-  } =
-  await createSplToken(connection, walletAddress);
-  const {
-    blockhash,
-    lastValidBlockHeight,
-  } =  await connection.getLatestBlockhash({
-    commitment: 'finalized',
+  const { mint, createAccount, createInitializeMint, createAta, mintTo } = await createSplToken(
+    connection,
+    walletAddress
+  );
+  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash({
+    commitment: "finalized",
   });
   // const metadataPDA = await Metadata.getPDA(connection, mint.publicKey);
   const programPubkey = new PublicKey(PROGRAM_ADDRESS);
-  const [metadataPDA] = (await PublicKey.findProgramAddress([
-    Buffer.from('metadata'),
-    programPubkey.toBuffer(),
-    mint.publicKey.toBuffer()
-  ], programPubkey));
+  const [metadataPDA] = await PublicKey.findProgramAddress(
+    [Buffer.from("metadata"), programPubkey.toBuffer(), mint.publicKey.toBuffer()],
+    programPubkey
+  );
   // const editionPDA = await MasterEdition.getPDA(mint.publicKey);
-  const [editionPDA] =  (await PublicKey.findProgramAddress([
-    Buffer.from('metadata'),
-    programPubkey.toBuffer(),
-    mint.publicKey.toBuffer(),
-    Buffer.from('edition'),
-  ], programPubkey));
-  const creatorsData = creators.reduce<Creator []>((memo, {
-    address,
-    share
-  }) => {
+  const [editionPDA] = await PublicKey.findProgramAddress(
+    [
+      Buffer.from("metadata"),
+      programPubkey.toBuffer(),
+      mint.publicKey.toBuffer(),
+      Buffer.from("edition"),
+    ],
+    programPubkey
+  );
+  const creatorsData = creators.reduce<Creator[]>((memo, { address, share }) => {
     const creator: Creator = {
       address: new PublicKey(address),
       share,
       verified: address === walletAddress.toBase58(),
     };
 
-    memo = [...memo as any, creator];
+    memo = [...(memo as any), creator];
 
     return memo;
   }, []);
-  const collectionData: Collection | null = collection ? {
-    key: new PublicKey(collection),
-    verified: false,
-  } : null;
+  const collectionData: Collection | null = collection
+    ? {
+        key: new PublicKey(collection),
+        verified: false,
+      }
+    : null;
   const uses: Uses = {
     useMethod: UseMethod.Single,
     total: 1,
@@ -115,44 +103,50 @@ export async function mintMasterEdition({
     collection: collectionData,
     uses,
   };
-  const createMetadataIns = createCreateMetadataAccountV3Instruction({
-    metadata: metadataPDA,
-    mint: mint.publicKey,
-    mintAuthority: walletAddress,
-    payer: walletAddress,
-    updateAuthority: walletAddress
-  }, {
-    createMetadataAccountArgsV3: {
-      data: metadataData,
-      isMutable: false,
-      collectionDetails: null,
+  const createMetadataIns = createCreateMetadataAccountV3Instruction(
+    {
+      metadata: metadataPDA,
+      mint: mint.publicKey,
+      mintAuthority: walletAddress,
+      payer: walletAddress,
+      updateAuthority: walletAddress,
+    },
+    {
+      createMetadataAccountArgsV3: {
+        data: metadataData,
+        isMutable: false,
+        collectionDetails: null,
+      },
     }
-  });
-  const masterEditionIns = createCreateMasterEditionV3Instruction({
-    edition: editionPDA,
-    metadata: metadataPDA,
-    mint: mint.publicKey,
-    mintAuthority: walletAddress,
-    payer: walletAddress,
-    updateAuthority: walletAddress
-  }, {
-    createMasterEditionArgs: {
-      maxSupply,
+  );
+  const masterEditionIns = createCreateMasterEditionV3Instruction(
+    {
+      edition: editionPDA,
+      metadata: metadataPDA,
+      mint: mint.publicKey,
+      mintAuthority: walletAddress,
+      payer: walletAddress,
+      updateAuthority: walletAddress,
+    },
+    {
+      createMasterEditionArgs: {
+        maxSupply,
+      },
     }
-  });
+  );
   const transaction = new Transaction({
     feePayer: walletAddress,
     blockhash,
     lastValidBlockHeight,
   });
   const updateTokenIx = await updateTokenData(
-    new PublicKey(process.env.REACT_APP_SC_ADDRESS as any),
+    new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS as any),
     {
       account: walletAddress,
       power: new BN(tokenPower),
       mint: mint.publicKey,
     }
-  )
+  );
   transaction
     .add(createAccount)
     .add(createInitializeMint)
@@ -174,24 +168,26 @@ export async function mintMasterEdition({
   return transaction.serialize({
     verifySignatures: true,
     requireAllSignatures: false,
-  })
+  });
 }
 
 export async function partialMintMasterEdition({
-  wallet, data, connection
-} : {
-  wallet: PublicKey,
+  wallet,
+  data,
+  connection,
+}: {
+  wallet: PublicKey;
   data: {
-    uri: string,
-    maxSupply: number,
-    name: string,
-    collection: string,
-    sellerFeeBasisPoints: number,
-    symbol: string,
-    tokenPower: number,
-    creators: any []
-  } [],
-  connection: Connection
+    uri: string;
+    maxSupply: number;
+    name: string;
+    collection: string;
+    sellerFeeBasisPoints: number;
+    symbol: string;
+    tokenPower: number;
+    creators: any[];
+  }[];
+  connection: Connection;
 }) {
   let mints: any = [];
   for (const d of data) {
@@ -217,8 +213,8 @@ export async function partialMintMasterEdition({
       connection,
       tokenPower,
     });
-    mints.push(mint)
+    mints.push(mint);
   }
-  const serializedTxs: Buffer[]= mints.map((tx: any) => Buffer.from(tx));
+  const serializedTxs: Buffer[] = mints.map((tx: any) => Buffer.from(tx));
   return serializedTxs;
 }
