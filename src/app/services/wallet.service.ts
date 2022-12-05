@@ -1,29 +1,31 @@
-import {
-  PublicKey
-} from '@solana/web3.js';
+import { PublicKey } from "@solana/web3.js";
 import {
   GlowWalletAdapter,
   PhantomWalletAdapter,
   SlopeWalletAdapter,
   SolflareWalletAdapter,
   TorusWalletAdapter,
-} from '@solana/wallet-adapter-wallets';
-export type IWalletProvider = {
-  name: string,
-  connect: Function,
-  disconnect: Function,
-  signTransaction: Function,
-  signAllTransactions: Function,
-  on: Function,
-  publicKey: PublicKey
-}
+} from "@solana/wallet-adapter-wallets";
+import { WalletContextState } from "@solana/wallet-adapter-react";
+export type IWalletProvider =
+  | {
+      name: string;
+      connect: Function;
+      disconnect: Function;
+      signTransaction: Function;
+      signAllTransactions: Function;
+      on: Function;
+      publicKey: PublicKey;
+    }
+  | WalletContextState;
+
 const wallets: any = {
   phantom: new PhantomWalletAdapter(),
   glow: new GlowWalletAdapter(),
   slope: new SlopeWalletAdapter(),
   solflare: new SolflareWalletAdapter(),
   torus: new TorusWalletAdapter(),
-}
+};
 export function getProvider(providerName: string): IWalletProvider {
   const provider: any = wallets[providerName];
   if (!provider) {

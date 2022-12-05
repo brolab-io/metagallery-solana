@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3133",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -29,6 +29,8 @@
     "next": "13.0.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-hook-form": "^7.40.0",
+    "react-toastify": "^9.1.1",
     "typescript": "4.9.3"
   },
   "devDependencies": {

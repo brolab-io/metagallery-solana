@@ -1,8 +1,10 @@
 import "./globals.css";
+import "react-toastify/dist/ReactToastify.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
 import AppContext from "../components/__Context";
 import Footer from "../components/__UI/Footer";
 import Navbar from "../components/__UI/Navbar";
+import ToastContainer from "../components/__Context/ToastContainer";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -20,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <Footer />
         </AppContext>
+        <ToastContainer theme="dark" />
       </body>
     </html>
   );

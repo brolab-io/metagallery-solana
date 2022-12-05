@@ -142,8 +142,8 @@ export async function mint(
   data: any[],
   connection: Connection
 ) {
-  if (!provider) {
-    throw new Error(`you must firstly connect to a wallet!`);
+  if (!provider || !provider.publicKey) {
+    throw new Error(`You must firstly connect to a wallet!`);
   }
   const pk = provider.publicKey;
   let txData: any = [];
@@ -171,7 +171,7 @@ export async function mint(
 }
 
 export async function stakeNft(provider: IWalletProvider, data: any, connection: Connection) {
-  if (!provider) {
+  if (!provider || !provider.publicKey) {
     throw new Error(`you must firstly connect to a wallet!`);
   }
   const serializedTx = await stakeAsset(connection, provider.publicKey, data);
