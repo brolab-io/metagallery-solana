@@ -9,6 +9,24 @@ import { sendTransaction } from "./solana.service";
 import { stakeAsset } from "./nft/stake";
 import { StakingAccount } from "./serde/states/stake";
 import base58 from "bs58";
+import axios from "axios";
+
+type NftMetadata = {
+  name: string;
+  symbol: string;
+  description: string;
+  seller_fee_basis_points: number;
+  image: string;
+  attributes: [];
+  collection: {
+    name: string;
+    family: string;
+  };
+  properties: {};
+};
+export const getNftMetadataFromUri = async (uri: string): Promise<NftMetadata> => {
+  return axios.get(uri).then((res) => res.data);
+};
 
 export async function getMetaData(connection: Connection, mintAddress: string) {
   const mintPubKey = new PublicKey(mintAddress);

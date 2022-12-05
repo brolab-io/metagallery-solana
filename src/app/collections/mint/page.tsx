@@ -7,7 +7,7 @@ import BreadCrumb from "../../../components/__UI/Breadcrumb";
 import Button from "../../../components/__UI/Button";
 import Container from "../../../components/__UI/Container";
 import LableInput from "../../../components/__UI/LableInput";
-import { checkCollection, mint } from "../../services/nft.service";
+import { checkCollection, mint } from "../../../services/nft.service";
 import { toast } from "react-toastify";
 
 type CreatorShare = {
@@ -58,6 +58,7 @@ const MintCollectionPage: React.FC = () => {
 
   const onSubmit = useCallback(
     async (data: FormValues) => {
+      setIsLoading(true);
       try {
         const isCollection =
           !data.collection || (await checkCollection(connection, data.collection));
@@ -72,6 +73,7 @@ const MintCollectionPage: React.FC = () => {
       } catch (error) {
         console.log(error);
         toast.error((error as Error).message);
+        setIsLoading(false);
       }
     },
     [connection, provider]

@@ -1,12 +1,13 @@
 "use client";
+import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
+import { useCallback, useEffect, useState } from "react";
 import ListCollection from "../../components/Collection/ListCollection";
 import BreadCrumb from "../../components/__UI/Breadcrumb";
 import Button from "../../components/__UI/Button";
 import Container from "../../components/__UI/Container";
-import usePromise from "../hooks/usePromise";
-import { getAssetsFromAddress } from "../services/nft.service";
+import { getAssetsFromAddress } from "../../services/nft.service";
 
 const breadCrumbItems = [
   {
@@ -17,13 +18,20 @@ const breadCrumbItems = [
 
 const CollectionsPage = () => {
   const { connection } = useConnection();
-  const { wallet } = useWallet();
+  const { publicKey } = useWallet();
 
-  const { data, error, isLoading } = usePromise(
-    getAssetsFromAddress(connection, new PublicKey("oziP8qtDFEeoJHPNQW6zJHADdRf5VJMmozmEoXYyG1T")),
-    []
-  );
-  console.log(isLoading, data, error);
+  const [assets, setAssets] = useState<Metadata[]>([]);
+
+  const getCollections = useCallback(async () => {
+    if (publicKey) {
+      const assets = await getAssetsFromAddress(connection, new PublicKey(publicKey.toBase58()));
+      setAssets(assets);
+    }
+  }, [connection, publicKey]);
+
+  useEffect(() => {
+    getCollections();
+  }, [getCollections]);
 
   return (
     <>
@@ -32,7 +40,7 @@ const CollectionsPage = () => {
           <BreadCrumb items={breadCrumbItems} />
           <Button href="/collections/mint">Create New</Button>
         </div>
-        <ListCollection collections={data} />
+        <ListCollection collections={assets} />
       </Container>
     </>
   );

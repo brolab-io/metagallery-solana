@@ -1,28 +1,57 @@
 "use client";
+import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
+import { useConnection } from "@solana/wallet-adapter-react";
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable @next/next/no-img-element */
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import Button from "../../../components/__UI/Button";
 import Container from "../../../components/__UI/Container";
 import H1 from "../../../components/__UI/H1";
+import { getMetaData, getNftMetadataFromUri } from "../../../services/nft.service";
+import CollectionContext from "./context";
 
 type Props = {
   params: {
     address: string;
   };
 };
-const CollectionLayout = async ({ children, params: { address } }: Props & { children: any }) => {
-  const collection = await fetchCollection("collectionId", collectionId);
+const CollectionLayout = ({ children, params: { address } }: Props & { children: any }) => {
+  const [collection, setCollection] = useState<Metadata | null>(null);
+  const [metadata, setMetadata] = useState<Awaited<
+    ReturnType<typeof getNftMetadataFromUri>
+  > | null>(null);
+  const { connection } = useConnection();
+
+  const getCollection = useCallback(async () => {
+    const result = await getMetaData(connection, address);
+    setCollection(result[0]);
+    const metadata = await getNftMetadataFromUri(result[0].data.uri);
+    setMetadata(metadata);
+  }, [connection, address]);
+
+  useEffect(() => {
+    getCollection();
+  }, [getCollection]);
+
+  const contextValue = useMemo(
+    () => ({
+      collection,
+      metadata,
+    }),
+    [collection, metadata]
+  );
+
   if (!collection) {
-    return notFound();
+    return null;
   }
+
   return (
-    <>
+    <CollectionContext.Provider value={contextValue}>
       <div className="relative group">
         <div className="min-h-[60vh]">
           <Image
-            src={`/api/imageProxy?imageUrl=https://${collection.collectionURIs}.ipfs.w3s.link/`}
+            src={metadata?.image || "https://picsum.photos/530/354"}
             className="object-cover w-full"
             fill
             alt="Gallery"
@@ -30,7 +59,7 @@ const CollectionLayout = async ({ children, params: { address } }: Props & { chi
         </div>
         <div className="absolute inset-0 flex items-center justify-center group-hover:bg-[#0C1226BF] transition-colors duration-500">
           <Button
-            href={`https://app.brolab.io/room/gallery-2?network=${process.env.NEXT_PUBLIC_NETWORK}&collection=${collection.collectionId}`}
+            href={`https://app.brolab.io/room/gallery-2?network=${process.env.NEXT_PUBLIC_NETWORK}&collection=${collection.mint}`}
             target="_blank"
           >
             VIEW COLLECTION IN 3D MODE
@@ -43,8 +72,8 @@ const CollectionLayout = async ({ children, params: { address } }: Props & { chi
                 <img src="/assets/images/fake-avatar.jpg" className="w-full h-full" alt="Avatar" />
               </div>
               <div className="flex items-center mb-8 space-x-4">
-                <H1>{collection.collectionName}</H1>
-                <img src="/assets/images/icon-check.svg" className="h-[26px] w-[26px]" />
+                <H1>{collection.data.name}</H1>
+                <img src="/assets/icons/icon-check.svg" className="h-[26px] w-[26px]" />
               </div>
             </div>
           </Container>
@@ -54,7 +83,7 @@ const CollectionLayout = async ({ children, params: { address } }: Props & { chi
         {/* <CollectionItemTabs owner={collection.owner} /> */}
         {children}
       </Container>
-    </>
+    </CollectionContext.Provider>
   );
 };
 
