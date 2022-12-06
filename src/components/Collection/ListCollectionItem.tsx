@@ -1,23 +1,14 @@
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { getNftMetadataFromUri } from "../../services/nft.service";
+import useAssetMetadata from "../../hooks/useAssetMetadata";
 
 type Props = {
   item: Metadata;
 };
 
 const ListCollectionItem: React.FC<Props> = ({ item }) => {
-  const [metadata, setMetadata] = useState<Awaited<
-    ReturnType<typeof getNftMetadataFromUri>
-  > | null>(null);
-
-  useEffect(() => {
-    if (item.data.uri) {
-      getNftMetadataFromUri(item.data.uri).then(setMetadata);
-    }
-  }, [item.data.uri]);
+  const { data: metadata } = useAssetMetadata(item.data.uri);
 
   return (
     <Link href={`/collections/${item.mint.toString()}`}>

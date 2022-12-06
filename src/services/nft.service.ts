@@ -1,3 +1,4 @@
+import axios from "axios";
 import { PROGRAM_ID, Metadata, MasterEditionV2 } from "@metaplex-foundation/mpl-token-metadata";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -7,9 +8,7 @@ import { partialMintCollection } from "./nft/collection";
 import { partialMintNewEditionFromMaster } from "./nft/edition";
 import { sendTransaction } from "./solana.service";
 import { stakeAsset } from "./nft/stake";
-import { StakingAccount } from "./serde/states/stake";
-import base58 from "bs58";
-import axios from "axios";
+import { TokenData } from "./serde/states/token-data";
 
 type NftMetadata = {
   name: string;
@@ -24,6 +23,11 @@ type NftMetadata = {
   };
   properties: {};
 };
+
+export type TokenMetdata = Metadata & {
+  tokenData: TokenData | {};
+};
+
 export const getNftMetadataFromUri = async (uri: string): Promise<NftMetadata> => {
   return axios.get(uri).then((res) => res.data);
 };
@@ -37,29 +41,35 @@ export async function getMetaData(connection: Connection, mintAddress: string) {
   const originalEditionAccount = await connection.getAccountInfo(originalEdition);
   return Metadata.fromAccountInfo(originalEditionAccount as any);
 }
-
-export async function getAssetsFromAddressV2(
-  connection: Connection,
-  address: PublicKey,
-  programId: PublicKey = PROGRAM_ID
-) {
-  const assets = await connection.getProgramAccounts(programId, {
-    // filters: [
-    //   {
-    //     memcmp: {
-    //       offset: 1,
-    //       bytes: address.toBase58(),
-    //     },
-    //   },
-    // ],
+export async function getMultiMetaData(connection: Connection, mintAddresses: string[]) {
+  const mintPubKeys = mintAddresses.map((m) => {
+    const [originalEdition] = PublicKey.findProgramAddressSync(
+      [Buffer.from("metadata", "utf-8"), PROGRAM_ID.toBuffer(), new PublicKey(m).toBuffer()],
+      PROGRAM_ID
+    );
+    return originalEdition;
   });
-  console.log("getAssetsFromAddressV2", assets);
-  return assets.map((a) => {
-    return Metadata.fromAccountInfo(a.account);
+  const originalEditionAccounts = await connection.getMultipleAccountsInfo(mintPubKeys);
+  return originalEditionAccounts.map((d) => Metadata.fromAccountInfo(d as any));
+}
+export async function getMultiTokenData(connection: Connection, mintAddresses: string[]) {
+  const mintPubKeys = mintAddresses.map((m) => {
+    const [originalEdition] = PublicKey.findProgramAddressSync(
+      [Buffer.from("tokendata"), new PublicKey(m).toBuffer()],
+      new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS || "")
+    );
+    return originalEdition;
+  });
+  const originalEditionAccounts = await connection.getMultipleAccountsInfo(mintPubKeys);
+  return originalEditionAccounts.map((d) => {
+    try {
+      return TokenData.deserializeToReadable(d?.data as any);
+    } catch (error) {
+      return null;
+    }
   });
 }
-
-export async function getStakingsForAddress(
+export async function getAssetsFromAddressV2(
   connection: Connection,
   address: PublicKey,
   programId: PublicKey = PROGRAM_ID
@@ -68,46 +78,22 @@ export async function getStakingsForAddress(
     filters: [
       {
         memcmp: {
-          offset: 137,
+          offset: 1,
           bytes: address.toBase58(),
-        },
-      },
-      {
-        memcmp: {
-          offset: 0,
-          bytes: base58.encode(Buffer.from([101])),
         },
       },
     ],
   });
-  const mintPubkeys: any = [];
-  const stakingData = assets
-    .map((a) => {
-      try {
-        const data = StakingAccount.deserializeToReadable(a.account.data as Buffer);
-        if (!data) {
-          throw new Error(`Invalid mint data, ignore`);
-        }
-        const mintPubkey = data.stakingTokenMintAddress;
-        mintPubkeys.push(mintPubkey);
-        return a;
-      } catch (error) {
-        // console.log(error);
-        return null;
-      }
-    })
-    .filter((data) => data);
-  const mintData = await Promise.all(mintPubkeys.map((m: any) => getMetaData(connection, m)));
-  return stakingData.map((s, i) => ({
-    staking: s,
-    mintData: mintData[i][0],
-  }));
+  return assets.map((a) => {
+    return Metadata.fromAccountInfo(a.account);
+  });
 }
+
 export async function getAssetsFromAddress(
   connection: Connection,
   address: PublicKey,
   programId: PublicKey = PROGRAM_ID
-) {
+): Promise<TokenMetdata[]> {
   const accountList = await connection.getParsedTokenAccountsByOwner(address, {
     programId: TOKEN_PROGRAM_ID,
   });
@@ -117,14 +103,21 @@ export async function getAssetsFromAddress(
         a.account.data.parsed.info.tokenAmount.amount === "1" &&
         a.account.data.program === "spl-token"
     )
-    .filter((_, index) => index < 20);
+    .filter((_, index) => index < 100)
+    .map((t) => t.account.data.parsed.info.mint);
+
+  const tokenData = await getMultiTokenData(connection, tokenList);
+
   return Promise.all(
-    tokenList.map(async (t) => {
-      return (await getMetaData(connection, t.account.data.parsed.info.mint))[0];
+    tokenList.map(async (m, index) => {
+      const data = await getMetaData(connection, m);
+      return {
+        ...data[0],
+        tokenData: tokenData[index] || {},
+      } as TokenMetdata;
     })
   );
 }
-
 export async function checkCollection(
   connection: Connection,
   collectionAddress: string
@@ -153,7 +146,6 @@ export async function checkCollection(
   }
   return !!masterEditionV2 && masterEditionV2.maxSupply?.toString() === "0";
 }
-
 export async function mint(
   type: string,
   provider: IWalletProvider,
@@ -161,7 +153,7 @@ export async function mint(
   connection: Connection
 ) {
   if (!provider || !provider.publicKey) {
-    throw new Error(`You must firstly connect to a wallet!`);
+    throw new Error(`you must firstly connect to a wallet!`);
   }
   const pk = provider.publicKey;
   let txData: any = [];

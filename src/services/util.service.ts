@@ -5,7 +5,6 @@ export function pad(str: string, len: number) {
 export function getCurrentPayrollIndex(currentAt: number, rewardPeriod: number, startAt: number) {
   return Math.floor((currentAt - startAt) / rewardPeriod) + 1;
 }
-
 type CreatorShare = {
   creator: string;
   share: number;

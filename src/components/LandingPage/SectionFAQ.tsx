@@ -46,9 +46,9 @@ const SectionFAQ = () => {
                 show={expandedIndex === index}
                 enter="transition-all duration-300 overflow-hidden ease-in"
                 enterFrom="h-0 opacity-0"
-                enterTo="h-16 opacity-100"
+                enterTo="h-20 opacity-100"
                 leave="transition-all duration-300 overflow-hidden ease-out"
-                leaveFrom="h-16 opacity-100"
+                leaveFrom="h-20 opacity-100"
                 leaveTo="h-0 opacity-0"
               >
                 <p className="text-[17px] text-[#B9B9BF]">{item.description}</p>

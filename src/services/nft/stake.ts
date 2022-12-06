@@ -1,4 +1,3 @@
-import BN from "bn.js";
 import {
   Connection,
   PublicKey,
@@ -13,6 +12,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getAssociatedTokenAddress,
 } from "@solana/spl-token";
+import { PROGRAM_ID as MP_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 import { Pool } from "../serde/states/pool";
 export async function stakeAsset(
   connection: Connection,
@@ -26,24 +26,29 @@ export async function stakeAsset(
   }
 ) {
   const { NEXT_PUBLIC_SC_ADDRESS = "" } = process.env;
+  console.log(poolPda.toBase58());
   const now = Math.floor(Date.now() / 1000);
   const poolAccountInfo = await connection.getAccountInfo(poolPda);
   const parsedPoolData = Pool.deserialize(poolAccountInfo?.data as Buffer);
-  const currentPayrollIndex = getCurrentPayrollIndex(
-    now,
-    parsedPoolData.rewardPeriod.toNumber(),
-    parsedPoolData.startAt.toNumber()
-  );
+  const nextPayrollIndex =
+    getCurrentPayrollIndex(
+      now,
+      parsedPoolData.rewardPeriod.toNumber(),
+      parsedPoolData.startAt.toNumber()
+    ) + 1;
   const [payrollPda] = await PublicKey.findProgramAddress(
-    [Buffer.from("payroll"), Buffer.from(currentPayrollIndex.toString()), poolPda.toBuffer()],
+    [Buffer.from("payroll"), Buffer.from(nextPayrollIndex.toString()), poolPda.toBuffer()],
     new PublicKey(NEXT_PUBLIC_SC_ADDRESS)
   );
   const [stakingTokenDataPda] = await PublicKey.findProgramAddress(
     [Buffer.from("tokendata"), stakingTokenMintAddress.toBuffer()],
     new PublicKey(NEXT_PUBLIC_SC_ADDRESS)
   );
-  const tokenDataInfo = await connection.getAccountInfo(stakingTokenDataPda);
-  // const parsedTokenDataInfo = Pool.deserialize(tokenDataInfo?.data as Buffer);
+
+  const [metadataPDA] = await PublicKey.findProgramAddress(
+    [Buffer.from("metadata"), MP_PROGRAM_ID.toBuffer(), stakingTokenMintAddress.toBuffer()],
+    MP_PROGRAM_ID
+  );
   const [pda] = await PublicKey.findProgramAddress(
     [
       Buffer.from("staking"),
@@ -112,6 +117,11 @@ export async function stakeAsset(
         isSigner: false,
         isWritable: true,
         pubkey: payrollPda,
+      },
+      {
+        isSigner: false,
+        isWritable: true,
+        pubkey: metadataPDA,
       },
       {
         isSigner: false,

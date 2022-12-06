@@ -39,10 +39,12 @@ export async function createPool(
     poolType,
   });
   const newName = pad(name, 16);
+
   const [pda] = await PublicKey.findProgramAddress(
     [Buffer.from(newName), Buffer.from("pool"), creator.toBuffer()],
     new PublicKey(NEXT_PUBLIC_SC_ADDRESS)
   );
+
   const rewardAta = await getAssociatedTokenAddress(
     rewardTokenMintAddress,
     pda,
@@ -61,7 +63,6 @@ export async function createPool(
   const serializedData = initPoolIx.serialize();
   const dataBuffer = Buffer.from(serializedData);
   // console.log(testPub.toBuffer());
-  console.log(pda.toBase58());
   const instruction = new TransactionInstruction({
     keys: [
       {

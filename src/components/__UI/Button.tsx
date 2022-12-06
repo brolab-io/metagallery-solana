@@ -39,7 +39,7 @@ const Button: React.FC<Props> = ({
     <Container>
       <button
         disabled={disabled || isLoading}
-        type={type}
+        type={type || "button"}
         {...props}
         className={clsx(
           className,
