@@ -25,7 +25,7 @@ export async function withdraw(
     pdaAccount: PublicKey;
   }
 ): Promise<any> {
-  const { NEXT_PUBLIC_SC_ADDRESS = "" } = process.env;
+  const NEXT_PUBLIC_SC_ADDRESS = process.env.NEXT_PUBLIC_SC_ADDRESS!;
   const programId = new PublicKey(NEXT_PUBLIC_SC_ADDRESS);
   const now = Math.floor(Date.now() / 1000);
 

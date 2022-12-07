@@ -42,6 +42,8 @@ const breadCrumbItems = [
 ];
 
 const MintCollectionPage: React.FC = () => {
+  const [creators, setCreators] = useState<CreatorShare[]>([]);
+
   // ### FORM
   const [isLoading, setIsLoading] = useState(false);
   const { register, handleSubmit, watch } = useForm<FormValues>({
@@ -65,6 +67,10 @@ const MintCollectionPage: React.FC = () => {
     fileInputRef.current?.click();
   }, []);
 
+  const checkCreatorShare = (creators: CreatorShare[]): boolean => {
+    return !creators || !creators.length || creators.reduce((s, i) => s + i.share, 0) === 100;
+  };
+
   const onSubmit = useCallback(
     async (data: FormValues) => {
       setIsLoading(true);
@@ -79,9 +85,15 @@ const MintCollectionPage: React.FC = () => {
       try {
         const isCollection =
           !data.collection || (await checkCollection(connection, data.collection));
+
         if (!isCollection) {
           toast.error("Collection is not valid");
           return;
+        }
+
+        const checkShare: boolean = checkCreatorShare(creators);
+        if (!checkShare) {
+          throw new Error(`Creators, if set, must have 100 shares in total`);
         }
 
         toastId = toast.info("Minting collection, please wait...", {
@@ -95,7 +107,7 @@ const MintCollectionPage: React.FC = () => {
           fileType: data.files[0].type,
           description: `NFT for BigRich`,
           seller_fee_basis_points: data.sellerFeeBasisPoints,
-          creators: data.creators,
+          creators,
         });
 
         const url = await uploadMetadata(data.files[0], metadata);
@@ -133,7 +145,7 @@ const MintCollectionPage: React.FC = () => {
         setIsLoading(false);
       }
     },
-    [connection, provider]
+    [connection, provider, creators]
   );
 
   const { ref: fileRef, ...fields } = register("files");
@@ -236,7 +248,7 @@ const MintCollectionPage: React.FC = () => {
           type="number"
         />
 
-        <CreatorShare />
+        <CreatorShare creators={creators} setCreators={setCreators} />
 
         <Button className="self-start" type="submit" disabled={isLoading}>
           <span className="ml-2">{isLoading ? "Minting..." : "Mint"}</span>

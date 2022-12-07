@@ -27,7 +27,7 @@ export async function updateReward(
     poolPda: PublicKey;
   }
 ): Promise<any> {
-  const { NEXT_PUBLIC_SC_ADDRESS = "" } = process.env;
+  const NEXT_PUBLIC_SC_ADDRESS = process.env.NEXT_PUBLIC_SC_ADDRESS!;
   console.log({
     poolPda: poolPda.toBase58(),
     amount: amount.toNumber(),

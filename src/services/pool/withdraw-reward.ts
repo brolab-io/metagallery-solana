@@ -28,7 +28,8 @@ export async function withdrawReward(
     poolPda: PublicKey | null;
   }
 ) {
-  const { NEXT_PUBLIC_SC_ADDRESS = "", NEXT_PUBLIC_STAKING_POOL = "" } = process.env;
+  const NEXT_PUBLIC_SC_ADDRESS = process.env.NEXT_PUBLIC_SC_ADDRESS!;
+  const NEXT_PUBLIC_STAKING_POOL = process.env.NEXT_PUBLIC_STAKING_POOL!;
   const programId = new PublicKey(NEXT_PUBLIC_SC_ADDRESS);
   const newPoolPda = poolPda || new PublicKey(NEXT_PUBLIC_STAKING_POOL);
   const [stakingPda] = await PublicKey.findProgramAddress(

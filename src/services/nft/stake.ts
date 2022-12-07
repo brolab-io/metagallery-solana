@@ -25,7 +25,7 @@ export async function stakeAsset(
     poolPda?: PublicKey;
   }
 ) {
-  const { NEXT_PUBLIC_SC_ADDRESS = "" } = process.env;
+  const NEXT_PUBLIC_SC_ADDRESS = process.env.NEXT_PUBLIC_SC_ADDRESS!;
   console.log(poolPda.toBase58());
   const now = Math.floor(Date.now() / 1000);
   const poolAccountInfo = await connection.getAccountInfo(poolPda);

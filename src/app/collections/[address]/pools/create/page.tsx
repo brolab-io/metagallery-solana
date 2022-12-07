@@ -106,7 +106,7 @@ const CreatePoolPage: React.FC<Props> = ({ params: { address } }) => {
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col space-y-6 text-white">
         <LableInput
           label="Name *"
-          placeholder="Name of the nft (e.g. My NFT)"
+          placeholder="Name of the Pool (e.g. My Pool)"
           {...register("name", {
             required: "Name is required",
             maxLength: {
@@ -120,11 +120,7 @@ const CreatePoolPage: React.FC<Props> = ({ params: { address } }) => {
           label="Reward Token *"
           placeholder="Reward Token Mint Address"
           {...register("rewardTokenMintAddress", {
-            required: "Symbol is required",
-            maxLength: {
-              value: 10,
-              message: "Name must be less than 10 characters",
-            },
+            required: "Reward Token required",
           })}
         />
 
@@ -136,10 +132,6 @@ const CreatePoolPage: React.FC<Props> = ({ params: { address } }) => {
             min: {
               value: 0,
               message: "Seller Fee Basis Points must be greater than 0",
-            },
-            max: {
-              value: 100,
-              message: "Seller Fee Basis Points must be less than 100",
             },
             valueAsNumber: true,
           })}

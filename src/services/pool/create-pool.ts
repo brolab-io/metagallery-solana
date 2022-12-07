@@ -30,7 +30,7 @@ export async function createPool(
     poolType: number;
   }
 ) {
-  const { NEXT_PUBLIC_SC_ADDRESS = "" } = process.env;
+  const NEXT_PUBLIC_SC_ADDRESS = process.env.NEXT_PUBLIC_SC_ADDRESS!;
   console.log({
     name,
     rewardPeriod,

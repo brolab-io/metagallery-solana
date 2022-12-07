@@ -6,9 +6,12 @@ type TCreatorShare = {
   share: number;
 };
 
-const CreatorShare = () => {
-  const [creators, setCreators] = useState<TCreatorShare[]>([]);
+type Props = {
+  creators: TCreatorShare[];
+  setCreators: (creators: TCreatorShare[] | ((prev: TCreatorShare[]) => TCreatorShare[])) => void;
+};
 
+const CreatorShare = ({ creators, setCreators }: Props) => {
   const addCreator = useCallback(() => {
     setCreators((prev) => {
       if (prev.length >= 5) {
@@ -16,15 +19,18 @@ const CreatorShare = () => {
       }
       return [...prev, { creator: "", share: 0 }];
     });
-  }, []);
+  }, [setCreators]);
 
-  const removeCreator = useCallback((e: React.MouseEvent<HTMLButtonElement>, index: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCreators((prev) => {
-      return prev.filter((_, i) => i !== index);
-    });
-  }, []);
+  const removeCreator = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>, index: number) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setCreators((prev) => {
+        return prev.filter((_, i) => i !== index);
+      });
+    },
+    [setCreators]
+  );
 
   const handleCreatorChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>, index: number) => {

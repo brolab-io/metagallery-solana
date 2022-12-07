@@ -8,6 +8,7 @@ import BoxFrame from "../../../../components/__UI/BoxFrame";
 import BreadCrumb from "../../../../components/__UI/Breadcrumb";
 import Button from "../../../../components/__UI/Button";
 import Container from "../../../../components/__UI/Container";
+import CreatorShare from "../../../../components/__UI/CreatorShare";
 import LableInput from "../../../../components/__UI/LableInput";
 import { uploadMetadata } from "../../../../services/ipfs/upload";
 import { mint } from "../../../../services/nft.service";
@@ -45,6 +46,7 @@ type Props = {
 };
 
 const MintNftPage = ({ params: { address } }: Props) => {
+  const [creators, setCreators] = useState<CreatorShare[]>([]);
   const { register, handleSubmit, watch } = useForm<FormValues>({
     defaultValues: {
       uri: "https://nftbigrich.s3.amazonaws.com/hoa/test_nft.json",
@@ -62,6 +64,10 @@ const MintNftPage = ({ params: { address } }: Props) => {
   const { collection, metadata } = useCollectionContext();
   const provider = useWallet();
 
+  const checkCreatorShare = (creators: CreatorShare[]): boolean => {
+    return !creators || !creators.length || creators.reduce((s, i) => s + i.share, 0) === 100;
+  };
+
   const selectFile = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
@@ -78,6 +84,11 @@ const MintNftPage = ({ params: { address } }: Props) => {
       let toastId: ReturnType<typeof toast.info> | null = null;
 
       try {
+        const checkShare: boolean = checkCreatorShare(creators);
+        if (!checkShare) {
+          throw new Error(`Creators, if set, must have 100 shares in total`);
+        }
+
         const collectionName = metadata?.name || collection?.data.name;
         toastId = toast.info(
           collectionName
@@ -133,7 +144,7 @@ const MintNftPage = ({ params: { address } }: Props) => {
         setIsLoading(false);
       }
     },
-    [collection?.data.name, connection, metadata?.name, provider]
+    [collection?.data.name, connection, creators, metadata?.name, provider]
   );
 
   const { ref: fileRef, ...fields } = register("files");
@@ -248,6 +259,9 @@ const MintNftPage = ({ params: { address } }: Props) => {
             valueAsNumber: true,
           })}
         />
+
+        <CreatorShare creators={creators} setCreators={setCreators} />
+
         <Button className="self-start" type="submit" disabled={isLoading}>
           <span className="ml-2">{isLoading ? "Creating..." : "Create New"}</span>
         </Button>
