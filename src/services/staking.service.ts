@@ -18,6 +18,7 @@ export async function redeem(provider: IWalletProvider, data: any = {}, connecti
     poolPda: data.poolPda ? new PublicKey(data.poolPda) : null,
     payrollIndex: data.payrollIndex ? new BN(data.payrollIndex) : null,
     stakingTokenMintAddress: new PublicKey(data.stakingTokenMintAddress),
+    rewardTokenMintAddress: new PublicKey(data.rewardTokenMintAddress),
   });
   return sendTransaction(connection, provider, [serializedTx]);
 }

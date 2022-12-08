@@ -14,6 +14,7 @@ import {
 import { Pool } from "../serde/states/pool";
 import { getCurrentPayrollIndex } from "../util.service";
 import { UpdateRewarderInstruction } from "../serde/instructions/update-reward";
+import { Payroll } from "../serde/states/payroll";
 export async function updateReward(
   connection: Connection,
   creator: PublicKey,
@@ -21,10 +22,12 @@ export async function updateReward(
     poolPda,
     amount,
     payrollIndex,
+    rewardTokenMint,
   }: {
     amount: BN;
     payrollIndex: BN | null;
     poolPda: PublicKey;
+    rewardTokenMint: PublicKey;
   }
 ): Promise<any> {
   const NEXT_PUBLIC_SC_ADDRESS = process.env.NEXT_PUBLIC_SC_ADDRESS!;
@@ -53,8 +56,28 @@ export async function updateReward(
     [Buffer.from("payroll"), Buffer.from(validPayrollIndex.toString()), poolPda.toBuffer()],
     programId
   );
-  const [rewardPda] = await PublicKey.findProgramAddress(
-    [Buffer.from("rewarder"), payrollPda.toBuffer(), poolPda.toBuffer()],
+  const payrollPdaInfo = await connection.getAccountInfo(payrollPda);
+  let numberOfRewardTokens = new BN(1);
+  if (payrollPdaInfo && payrollPdaInfo.data && payrollPdaInfo.data.length) {
+    const parsedPayrollData = Payroll.deserialize(payrollPdaInfo?.data as Buffer);
+    numberOfRewardTokens = parsedPayrollData.numberOfRewardTokens.add(new BN(1));
+  }
+
+  const [payrollTokenPda] = await PublicKey.findProgramAddress(
+    [
+      Buffer.from("payrolltoken"),
+      Buffer.from(validPayrollIndex.toString()),
+      rewardTokenMint.toBuffer(),
+      payrollPda.toBuffer(),
+    ],
+    programId
+  );
+  const [payrollIndexPda] = await PublicKey.findProgramAddress(
+    [
+      Buffer.from("payrollindex"),
+      Buffer.from(numberOfRewardTokens.toString()),
+      payrollPda.toBuffer(),
+    ],
     programId
   );
   const initStakingIx = new UpdateRewarderInstruction({
@@ -63,16 +86,15 @@ export async function updateReward(
   });
   const serializedData = initStakingIx.serialize();
   const dataBuffer = Buffer.from(serializedData);
-  const rewardTokenPubKey = new PublicKey(parsedPoolData.rewardTokenMintAddress);
   const dstTokenAssociatedAccount = await getAssociatedTokenAddress(
-    rewardTokenPubKey,
-    rewardPda,
+    rewardTokenMint,
+    payrollPda,
     true,
     TOKEN_PROGRAM_ID,
     ASSOCIATED_TOKEN_PROGRAM_ID
   );
   const srcTokenAssociatedAccount = await getAssociatedTokenAddress(
-    rewardTokenPubKey,
+    rewardTokenMint,
     creator,
     true,
     TOKEN_PROGRAM_ID,
@@ -94,12 +116,7 @@ export async function updateReward(
       {
         isSigner: false,
         isWritable: true,
-        pubkey: rewardPda,
-      },
-      {
-        isSigner: false,
-        isWritable: true,
-        pubkey: rewardTokenPubKey,
+        pubkey: rewardTokenMint,
       },
       {
         isSigner: false,
@@ -110,6 +127,16 @@ export async function updateReward(
         isSigner: false,
         isWritable: true,
         pubkey: dstTokenAssociatedAccount,
+      },
+      {
+        isSigner: false,
+        isWritable: true,
+        pubkey: payrollTokenPda,
+      },
+      {
+        isSigner: false,
+        isWritable: true,
+        pubkey: payrollIndexPda,
       },
       {
         isSigner: false,

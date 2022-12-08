@@ -8,24 +8,19 @@ import {
 } from "@solana/web3.js";
 import { CreatePoolIns } from "../serde/instructions/create-pool";
 import { pad } from "../util.service";
-import {
-  TOKEN_PROGRAM_ID,
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  getAssociatedTokenAddress,
-} from "@solana/spl-token";
+import { ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
+
 export async function createPool(
   connection: Connection,
   creator: PublicKey,
   {
     name,
     rewardPeriod,
-    rewardTokenMintAddress,
     collection,
     poolType,
   }: {
     name: string;
     rewardPeriod: BN;
-    rewardTokenMintAddress: PublicKey;
     collection: PublicKey;
     poolType: number;
   }
@@ -34,7 +29,6 @@ export async function createPool(
   console.log({
     name,
     rewardPeriod,
-    rewardTokenMintAddress: rewardTokenMintAddress.toBase58(),
     collection: collection.toBase58(),
     poolType,
   });
@@ -45,13 +39,6 @@ export async function createPool(
     new PublicKey(NEXT_PUBLIC_SC_ADDRESS)
   );
 
-  const rewardAta = await getAssociatedTokenAddress(
-    rewardTokenMintAddress,
-    pda,
-    true,
-    TOKEN_PROGRAM_ID,
-    ASSOCIATED_TOKEN_PROGRAM_ID
-  );
   const initPoolIx = new CreatePoolIns({
     name: Buffer.from(newName),
     rewardPeriod,
@@ -74,21 +61,6 @@ export async function createPool(
         isSigner: false,
         isWritable: true,
         pubkey: pda,
-      },
-      {
-        isSigner: false,
-        isWritable: false,
-        pubkey: rewardTokenMintAddress,
-      },
-      {
-        isSigner: false,
-        isWritable: true,
-        pubkey: rewardAta,
-      },
-      {
-        isSigner: false,
-        isWritable: false,
-        pubkey: TOKEN_PROGRAM_ID,
       },
       {
         isSigner: false,
