@@ -1,30 +1,36 @@
 import { useConnection } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js";
 import { useCallback, useEffect, useState } from "react";
-import { getPoolsFromAddress } from "../services/pool.service";
+import { getStakingPoolsFromCollection } from "../services/pool.service";
+import { Pool } from "../services/serde/states/pool";
 
 type Result = {
   isLoading: boolean;
-  data: any | null;
+  data: Pool[];
   error: unknown;
 };
 
-const usePools = () => {
+const usePools = (collectionAddress: string) => {
   const { connection } = useConnection();
   const [result, setResult] = useState<Result>({
     isLoading: false,
-    data: null,
+    data: [],
     error: null,
   });
 
   const fetchPools = useCallback(async () => {
-    setResult({ isLoading: true, data: null, error: null });
+    setResult({ isLoading: true, data: [], error: null });
     try {
-      const data = await getPoolsFromAddress(connection);
-      // setResult({ isLoading: false, data: data[0], error: null });
+      const data = await getStakingPoolsFromCollection(
+        connection,
+        undefined,
+        new PublicKey(collectionAddress)
+      );
+      setResult({ isLoading: false, data: data, error: null });
     } catch (error) {
-      setResult({ isLoading: false, data: null, error });
+      setResult({ isLoading: false, data: [], error });
     }
-  }, [connection]);
+  }, [collectionAddress, connection]);
 
   useEffect(() => {
     fetchPools();

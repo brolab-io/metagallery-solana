@@ -4,6 +4,9 @@ import { IWalletProvider } from "./wallet.service";
 import { createPool } from "./pool/create-pool";
 import { updateReward } from "./pool/update-reward";
 import { sendTransaction } from "./solana.service";
+import { PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
+import base58 from "bs58";
+import { Pool } from "./serde/states/pool";
 
 export async function createStakingPool(
   provider: IWalletProvider,
@@ -16,11 +19,38 @@ export async function createStakingPool(
   const pk = provider.publicKey;
   const serializedTx = await createPool(connection, pk, {
     name: data.name,
-    rewardPeriod: new BN(100),
+    rewardPeriod: new BN(data.rewardPeriod),
     collection: new PublicKey(data.collection),
     poolType: 1,
   });
   return sendTransaction(connection, provider, [serializedTx]);
+}
+
+export async function getStakingPoolsFromCollection(
+  connection: Connection,
+  programId: PublicKey = new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!),
+  collection: PublicKey
+) {
+  console.log("getStakingPools", collection.toBase58());
+  const rawPools = await connection.getProgramAccounts(programId, {
+    filters: [
+      {
+        memcmp: {
+          offset: 0,
+          bytes: base58.encode(Buffer.from([100])),
+        },
+      },
+      {
+        memcmp: {
+          offset: 1 + 16 + 8 + 8 + 8 + 1 + 32,
+          bytes: collection.toBase58(),
+        },
+      },
+    ],
+  });
+  return rawPools.map((pool) => {
+    return Pool.deserialize(pool.account.data);
+  });
 }
 
 export async function updateStakingReward(

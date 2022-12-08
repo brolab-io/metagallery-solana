@@ -13,7 +13,6 @@ import { useCollectionContext } from "../../context";
 type FormValues = {
   name: string;
   rewardPeriod: number;
-  rewardTokenMintAddress: string;
   collection: string;
   poolType: 1;
 };
@@ -113,14 +112,6 @@ const CreatePoolPage: React.FC<Props> = ({ params: { address } }) => {
               value: 32,
               message: "Name must be less than 32 characters",
             },
-          })}
-        />
-
-        <LableInput
-          label="Reward Token *"
-          placeholder="Reward Token Mint Address"
-          {...register("rewardTokenMintAddress", {
-            required: "Reward Token required",
           })}
         />
 
