@@ -1,11 +1,11 @@
-import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import Image from "next/image";
 import Link from "next/link";
 import useAssetMetadata from "../../hooks/useAssetMetadata";
+import { TokenMetdata } from "../../services/nft.service";
 
 type Props = {
   isMarketplace?: boolean;
-  item: Metadata;
+  item: TokenMetdata;
 };
 
 const ListNFTItem = ({ isMarketplace, item }: Props) => {
@@ -39,20 +39,20 @@ const ListNFTItem = ({ isMarketplace, item }: Props) => {
         <div className="w-full truncate text-white font-bold text-[16px] sm:text-[17px] md:text-[18px] lg:text-[19px] xl:text-[20px]">
           {metadata?.name || item.data.name}
         </div>
-        {isMarketplace && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[15px] text-[#6B7280] font-bold">Powner</span>
-              {/* <span className="text-white font-bold text-[20px]">{nft.tokenPower}</span> */}
-            </div>
-            {/* {"marketPrice" in item && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[15px] text-[#6B7280] font-bold">Power</span>
+            <span className="text-white font-bold text-[20px]">
+              {"power" in item.tokenData && item.tokenData.power.toString()}
+            </span>
+          </div>
+          {/* {"marketPrice" in item && (
               <div className="flex items-center justify-between">
                 <span className="text-[15px] text-[#6B7280] font-bold">Sale price</span>
                 <span className="text-white font-bold text-[20px]">{nft.marketPrice} SOL</span>
               </div>
             )} */}
-          </div>
-        )}
+        </div>
       </div>
     </Link>
   );

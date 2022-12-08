@@ -87,7 +87,7 @@ const CollectionLayout = ({ children, params: { address } }: Props & { children:
         </div>
       </div>
       <Container className="py-48">
-        <CollectionItemTabs owner={collection.updateAuthority} />
+        <CollectionItemTabs address={address} owner={collection.updateAuthority} />
         {children}
       </Container>
     </CollectionContext.Provider>

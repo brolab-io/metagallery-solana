@@ -9,34 +9,33 @@ import Button from "../__UI/Button";
 
 type Props = {
   owner?: PublicKey | string | null;
+  address: string;
 };
 
-const CollectionItemTabs = ({ owner }: Props) => {
+const CollectionItemTabs = ({ owner, address }: Props) => {
   const { publicKey } = useWallet();
   const isOwner = publicKey?.toBase58() === owner?.toString();
   const pathname = usePathname();
-  const segments = pathname?.split("/") || [];
-  const lastSegment = segments[segments.length - 1];
-  const linkWithouLastSegment = segments.slice(1, segments.length - 1).join("/");
+  const collectionPath = `/collections/${address}`;
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex space-x-8">
-        <Link href={`/${linkWithouLastSegment}/nfts`}>
+        <Link href={`${collectionPath}/nfts`}>
           <div
             className={clsx(
               "text-[24px] lg:text-[32px] font-bold text-white py-3",
-              lastSegment === "nfts" && "text-primary border-b-4 border-[#17EF97]"
+              pathname?.includes("nfts") && "text-primary border-b-4 border-[#17EF97]"
             )}
           >
             NFTs
           </div>
         </Link>
-        <Link href={`/${linkWithouLastSegment}/pools`}>
+        <Link href={`${collectionPath}/pools`}>
           <div
             className={clsx(
               "text-[24px] lg:text-[32px] font-bold text-white py-3 mb-12",
-              lastSegment === "pools" && "text-primary border-b-4 border-[#17EF97]"
+              pathname?.includes("pools") && "text-primary border-b-4 border-[#17EF97]"
             )}
           >
             Pools
@@ -44,8 +43,13 @@ const CollectionItemTabs = ({ owner }: Props) => {
         </Link>
       </div>
       {isOwner && (
-        <div className="mb-12">
-          <Button href={`/${linkWithouLastSegment}/mint`}>Mint NFT</Button>
+        <div className="flex space-x-4">
+          <div className="mb-12">
+            <Button href={`${collectionPath}/mint`}>Mint NFT</Button>
+          </div>
+          <div className="mb-12">
+            <Button href={`${collectionPath}/pools/create`}>Create Pool</Button>
+          </div>
         </div>
       )}
     </div>

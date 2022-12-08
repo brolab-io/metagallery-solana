@@ -1,5 +1,7 @@
 "use client";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useMemo } from "react";
 import Loading from "../__UI/Loading";
 import ListCollectionItem from "./ListCollectionItem";
 
@@ -9,13 +11,25 @@ type Props = {
 };
 
 const ListCollection: React.FC<Props> = ({ collections, isLoading }) => {
+  const { publicKey } = useWallet();
+
+  const helpText = useMemo(() => {
+    if (!publicKey) {
+      return "Connect your wallet to see your collections!";
+    }
+    if (!collections.length) {
+      return "You don't have any collections yet. Create one to get started!";
+    }
+    return "";
+  }, [collections.length, publicKey]);
+
   if (isLoading) {
-    return <Loading label="Loading collections..." />;
+    return <Loading label="Loading your collections..." />;
   }
-  if (!collections.length) {
+  if (!collections.length || !publicKey) {
     return (
       <div className="py-40">
-        <p className="text-3xl text-center text-white">There are no collections</p>
+        <p className="text-3xl text-center text-white">{helpText}</p>
       </div>
     );
   }

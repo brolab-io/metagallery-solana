@@ -10,7 +10,7 @@ import Button from "../../../../components/__UI/Button";
 import Container from "../../../../components/__UI/Container";
 import CreatorShare from "../../../../components/__UI/CreatorShare";
 import LableInput from "../../../../components/__UI/LableInput";
-import { uploadMetadata } from "../../../../services/ipfs/upload";
+import { uploadMetadata, uploadMetadataUsingMetaplex } from "../../../../services/ipfs/upload";
 import { mint } from "../../../../services/nft.service";
 import { buildMetadata } from "../../../../services/util.service";
 import { useCollectionContext } from "../context";
@@ -81,6 +81,11 @@ const MintNftPage = ({ params: { address } }: Props) => {
         return;
       }
 
+      if (!data.files.length) {
+        toast.error("Please select a file to upload");
+        return;
+      }
+
       let toastId: ReturnType<typeof toast.info> | null = null;
 
       try {
@@ -90,26 +95,27 @@ const MintNftPage = ({ params: { address } }: Props) => {
         }
 
         const collectionName = metadata?.name || collection?.data.name;
-        toastId = toast.info(
-          collectionName
-            ? `Minting ${collectionName} NFT, please wait...`
-            : "Minting NFT, please wait...",
-          {
-            autoClose: false,
-          }
-        );
+        toastId = toast.info("Uploading metadata, please wait...", {
+          autoClose: false,
+          isLoading: true,
+        });
 
         const _metadata = buildMetadata({
           name: data.name,
           symbol: data.symbol,
           fileType: data.files[0].type,
-          description: `NFT for BigRich`,
+          description: `NFT for ${collectionName}`,
           seller_fee_basis_points: data.sellerFeeBasisPoints,
           creators: data.creators,
         });
 
-        const url = await uploadMetadata(data.files[0], _metadata);
-        data.uri = url;
+        data.uri = await uploadMetadataUsingMetaplex(connection, provider, data.files, _metadata);
+
+        toast.update(toastId, {
+          render: collectionName
+            ? `Minting ${collectionName} NFT, please wait...`
+            : "Minting NFT, please wait...",
+        });
 
         const txid = await mint("masteredition", provider, [data], connection);
 

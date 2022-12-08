@@ -45,15 +45,20 @@ const CreatorShare = ({ creators, setCreators }: Props) => {
         });
       });
     },
-    []
+    [setCreators]
   );
 
   return (
     <div className="space-y-4">
-      <div>
+      <div className="flex items-center space-x-4">
         <label className="text-white text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] xl:text-[24px] font-bold">
           Creator Share * (Max 5)
         </label>
+        {creators.length < 5 && (
+          <Button type="button" xs onClick={addCreator}>
+            Add Creator
+          </Button>
+        )}
       </div>
       {creators.map((creator, index) => {
         return (
@@ -82,11 +87,6 @@ const CreatorShare = ({ creators, setCreators }: Props) => {
           </div>
         );
       })}
-      {creators.length < 5 && (
-        <Button type="button" onClick={addCreator}>
-          Add Creator
-        </Button>
-      )}
     </div>
   );
 };

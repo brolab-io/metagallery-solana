@@ -11,6 +11,16 @@ export type TPool = {
   creator: Uint8Array;
   colletion: Uint8Array;
 };
+
+export type TReadablePool = {
+  name: string;
+  accountType: number;
+  totalDepositedPower: BN;
+  rewardPeriod: BN;
+  startAt: BN;
+  poolType: number;
+  creator: string;
+};
 export class Pool {
   name;
 
@@ -45,6 +55,30 @@ export class Pool {
 
   static deserialize(raw: Buffer): Pool {
     return borsh.deserialize(PoolSchema, Pool, raw);
+  }
+
+  static deserializeToReadable(raw: Buffer): TReadablePool {
+    const {
+      name,
+      accountType,
+      totalDepositedPower,
+      rewardPeriod,
+      startAt,
+      poolType,
+      creator,
+      collection,
+    } = borsh.deserialize(PoolSchema, Pool, raw);
+    // convert unit8Array to string
+
+    return {
+      name: Buffer.from(name).toString(),
+      accountType,
+      totalDepositedPower,
+      rewardPeriod,
+      startAt,
+      poolType,
+      creator: Buffer.from(creator).toString(),
+    };
   }
 }
 

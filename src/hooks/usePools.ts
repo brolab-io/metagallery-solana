@@ -2,11 +2,11 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { useCallback, useEffect, useState } from "react";
 import { getStakingPoolsFromCollection } from "../services/pool.service";
-import { Pool } from "../services/serde/states/pool";
+import { Pool, TReadablePool } from "../services/serde/states/pool";
 
 type Result = {
   isLoading: boolean;
-  data: Pool[];
+  data: TReadablePool[];
   error: unknown;
 };
 
@@ -26,8 +26,10 @@ const usePools = (collectionAddress: string) => {
         undefined,
         new PublicKey(collectionAddress)
       );
-      setResult({ isLoading: false, data: data, error: null });
+      const readablePools = data.map(Pool.deserializeToReadable);
+      setResult({ isLoading: false, data: readablePools, error: null });
     } catch (error) {
+      console.warn(error);
       setResult({ isLoading: false, data: [], error });
     }
   }, [collectionAddress, connection]);

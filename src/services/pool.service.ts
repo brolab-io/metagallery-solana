@@ -4,9 +4,7 @@ import { IWalletProvider } from "./wallet.service";
 import { createPool } from "./pool/create-pool";
 import { updateReward } from "./pool/update-reward";
 import { sendTransaction } from "./solana.service";
-import { PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 import base58 from "bs58";
-import { Pool } from "./serde/states/pool";
 
 export async function createStakingPool(
   provider: IWalletProvider,
@@ -49,9 +47,11 @@ export async function getStakingPoolsFromCollection(
     ],
   });
   return rawPools.map((pool) => {
-    return Pool.deserialize(pool.account.data);
+    return pool.account.data;
   });
 }
+
+export async function getStakingPoolByName(connection: Connection, name: string) {}
 
 export async function updateStakingReward(
   provider: IWalletProvider,

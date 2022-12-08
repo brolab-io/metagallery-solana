@@ -11,6 +11,7 @@ import { createStakingPool } from "../../../../../services/pool.service";
 import { useCollectionContext } from "../../context";
 
 type FormValues = {
+  id: string;
   name: string;
   rewardPeriod: number;
   collection: string;
@@ -32,6 +33,7 @@ const breadCrumbItems = [
 const CreatePoolPage: React.FC<Props> = ({ params: { address } }) => {
   const { register, handleSubmit, watch } = useForm<FormValues>({
     defaultValues: {
+      id: "",
       name: "",
       rewardPeriod: 60,
       collection: address,
@@ -102,7 +104,22 @@ const CreatePoolPage: React.FC<Props> = ({ params: { address } }) => {
     <Container className="pb-6 sm:pb-8 md:pb-12 lg:pb-16 xl:pb-20">
       <BreadCrumb items={breadCrumbItems} />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col space-y-6 text-white">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex flex-col mt-8 space-y-6 text-white md:mt-12 lg:mt-16 xl:mt-20"
+      >
+        <LableInput
+          label="Pool indentifier *"
+          placeholder="Unique identifier for the pool (e.g. cool-pool-1)"
+          {...register("id", {
+            required: "Id is required",
+            maxLength: {
+              value: 32,
+              message: "Id must be less than 32 characters",
+            },
+          })}
+        />
+
         <LableInput
           label="Name *"
           placeholder="Name of the Pool (e.g. My Pool)"

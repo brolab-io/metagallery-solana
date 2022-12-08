@@ -10,7 +10,7 @@ import LableInput from "../../../components/__UI/LableInput";
 import { checkCollection, mint } from "../../../services/nft.service";
 import { toast } from "react-toastify";
 import BoxFrame from "../../../components/__UI/BoxFrame";
-import { uploadMetadata } from "../../../services/ipfs/upload";
+import { uploadMetadata, uploadMetadataUsingMetaplex } from "../../../services/ipfs/upload";
 import { buildMetadata } from "../../../services/util.service";
 import CreatorShare from "../../../components/__UI/CreatorShare";
 
@@ -46,12 +46,17 @@ const MintCollectionPage: React.FC = () => {
 
   // ### FORM
   const [isLoading, setIsLoading] = useState(false);
-  const { register, handleSubmit, watch } = useForm<FormValues>({
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<FormValues>({
     defaultValues: {
       collection: "",
-      name: "Collection X",
+      name: "",
       uri: "",
-      symbol: "COLX",
+      symbol: "",
       sellerFeeBasisPoints: 0,
       size: 1,
       isMasterCollection: true,
@@ -96,7 +101,12 @@ const MintCollectionPage: React.FC = () => {
           throw new Error(`Creators, if set, must have 100 shares in total`);
         }
 
-        toastId = toast.info("Minting collection, please wait...", {
+        if (!data.files.length) {
+          toast.error("Please select a file to upload");
+          return;
+        }
+
+        toastId = toast.info("Uploading metadata, please wait...", {
           autoClose: false,
           isLoading: true,
         });
@@ -105,13 +115,16 @@ const MintCollectionPage: React.FC = () => {
           name: data.name,
           symbol: data.symbol,
           fileType: data.files[0].type,
-          description: `NFT for BigRich`,
+          description: `Collection of Metagallery`,
           seller_fee_basis_points: data.sellerFeeBasisPoints,
           creators,
         });
 
-        const url = await uploadMetadata(data.files[0], metadata);
-        data.uri = url;
+        data.uri = await uploadMetadataUsingMetaplex(connection, provider, data.files, metadata);
+
+        toast.update(toastId, {
+          render: "Minting collection, please wait...",
+        });
 
         const txid = await mint("collection", provider, [data], connection);
         toast.update(toastId, {
@@ -196,6 +209,7 @@ const MintCollectionPage: React.FC = () => {
               message: "Name must be less than 32 characters",
             },
           })}
+          error={errors.name?.message}
         />
 
         <LableInput
@@ -208,6 +222,7 @@ const MintCollectionPage: React.FC = () => {
               message: "Name must be less than 10 characters",
             },
           })}
+          error={errors.symbol?.message}
         />
 
         <LableInput
@@ -226,10 +241,11 @@ const MintCollectionPage: React.FC = () => {
             valueAsNumber: true,
           })}
           type="number"
+          error={errors.sellerFeeBasisPoints?.message}
         />
 
         <LableInput
-          label="Collection address *"
+          label="Collection address"
           placeholder="Collection address"
           {...register("collection", {})}
         />
@@ -246,6 +262,7 @@ const MintCollectionPage: React.FC = () => {
             valueAsNumber: true,
           })}
           type="number"
+          error={errors.size?.message}
         />
 
         <CreatorShare creators={creators} setCreators={setCreators} />

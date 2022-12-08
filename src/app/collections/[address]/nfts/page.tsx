@@ -9,7 +9,7 @@ type Props = {
 };
 
 const CollectionNFts = ({ params: { address } }: Props) => {
-  const { data, isLoading } = useAssets("nft");
+  const { data, isLoading } = useAssets("nft", address);
 
   console.log(data);
 
