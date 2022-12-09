@@ -25,6 +25,10 @@ const menus = [
     title: "Collections",
     href: "/collections",
   },
+  {
+    title: "Pools",
+    href: "/pools",
+  },
 ];
 
 function checkActive(href: string, pathname: string | null) {

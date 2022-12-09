@@ -1,7 +1,9 @@
+import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import * as borsh from "borsh";
 
 export type TPool = {
+  id: Uint8Array;
   name: Uint8Array;
   accountType: number;
   totalDepositedPower: BN;
@@ -13,6 +15,7 @@ export type TPool = {
 };
 
 export type TReadablePool = {
+  id: string;
   name: string;
   accountType: number;
   totalDepositedPower: BN;
@@ -22,6 +25,8 @@ export type TReadablePool = {
   creator: string;
 };
 export class Pool {
+  id;
+
   name;
 
   accountType;
@@ -40,6 +45,7 @@ export class Pool {
 
   constructor(fields: TPool) {
     this.accountType = fields.accountType;
+    this.id = fields.id;
     this.name = fields.name;
     this.totalDepositedPower = fields.totalDepositedPower;
     this.rewardPeriod = fields.rewardPeriod;
@@ -59,6 +65,7 @@ export class Pool {
 
   static deserializeToReadable(raw: Buffer): TReadablePool {
     const {
+      id,
       name,
       accountType,
       totalDepositedPower,
@@ -71,13 +78,14 @@ export class Pool {
     // convert unit8Array to string
 
     return {
+      id: Buffer.from(id).toString(),
       name: Buffer.from(name).toString(),
       accountType,
       totalDepositedPower,
       rewardPeriod,
       startAt,
       poolType,
-      creator: Buffer.from(creator).toString(),
+      creator: new PublicKey(creator).toBase58(),
     };
   }
 }
@@ -89,6 +97,7 @@ export const PoolSchema = new Map([
       kind: "struct",
       fields: [
         ["accountType", "u8"],
+        ["id", [16]],
         ["name", [16]],
         ["totalDepositedPower", "u64"],
         ["rewardPeriod", "u64"],

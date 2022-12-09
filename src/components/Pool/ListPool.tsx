@@ -3,7 +3,7 @@ import Loading from "../__UI/Loading";
 import ListPoolItem from "./ListPoolItem";
 
 type Props = {
-  collection: string;
+  collection?: string;
 };
 
 const ListPool = ({ collection }: Props) => {

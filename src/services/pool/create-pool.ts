@@ -14,11 +14,13 @@ export async function createPool(
   connection: Connection,
   creator: PublicKey,
   {
+    id,
     name,
     rewardPeriod,
     collection,
     poolType,
   }: {
+    id: string;
     name: string;
     rewardPeriod: BN;
     collection: PublicKey;
@@ -27,19 +29,22 @@ export async function createPool(
 ) {
   const NEXT_PUBLIC_SC_ADDRESS = process.env.NEXT_PUBLIC_SC_ADDRESS!;
   console.log({
+    id,
     name,
     rewardPeriod,
     collection: collection.toBase58(),
     poolType,
   });
+  const newId = pad(id, 16);
   const newName = pad(name, 16);
 
   const [pda] = await PublicKey.findProgramAddress(
-    [Buffer.from(newName), Buffer.from("pool"), creator.toBuffer()],
+    [Buffer.from(newId), Buffer.from("pool")],
     new PublicKey(NEXT_PUBLIC_SC_ADDRESS)
   );
 
   const initPoolIx = new CreatePoolIns({
+    id: Buffer.from(newId),
     name: Buffer.from(newName),
     rewardPeriod,
     startAt: new BN(Date.now() / 1000),

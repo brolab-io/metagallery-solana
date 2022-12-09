@@ -10,7 +10,7 @@ type Props = {
 const ListPoolItem = ({ item }: Props) => {
   const pathname = usePathname();
   return (
-    <Link href={`${pathname}/${item.name}`}>
+    <Link href={`${pathname}/${item.id}`}>
       <BoxFrame className="py-20 md:py-24 lg:py-[28px]">
         <div className="flex flex-col items-center font-bold">
           <div className="flex items-center space-x-4">

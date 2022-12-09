@@ -9,9 +9,10 @@ type Props = {
   isMarketplace?: boolean;
   nfts: TokenMetdata[];
   isLoading?: boolean;
+  onItemClicked?: (item: TokenMetdata) => void;
 };
 
-const ListNFT: React.FC<Props> = ({ isMarketplace, nfts, isLoading }) => {
+const ListNFT: React.FC<Props> = ({ isMarketplace, nfts, isLoading, onItemClicked }) => {
   const { publicKey } = useWallet();
 
   const helpText = useMemo(() => {
@@ -38,7 +39,12 @@ const ListNFT: React.FC<Props> = ({ isMarketplace, nfts, isLoading }) => {
   return (
     <div className="grid gap-8 mt-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {nfts.map((nft) => (
-        <ListNFTItem key={nft.mint.toString()} isMarketplace={isMarketplace} item={nft} />
+        <ListNFTItem
+          key={nft.mint.toString()}
+          onItemClicked={onItemClicked}
+          isMarketplace={isMarketplace}
+          item={nft}
+        />
       ))}
     </div>
   );

@@ -1,25 +1,54 @@
 import Image from "next/image";
 import Link from "next/link";
+import { PropsWithChildren } from "react";
 import useAssetMetadata from "../../hooks/useAssetMetadata";
 import { TokenMetdata } from "../../services/nft.service";
 
 type Props = {
   isMarketplace?: boolean;
   item: TokenMetdata;
+  onItemClicked?: (item: TokenMetdata) => void;
 };
 
-const ListNFTItem = ({ isMarketplace, item }: Props) => {
-  const { data: metadata } = useAssetMetadata(item.data.uri);
-
+type NFTItemWrapperProps = {
+  onItemClicked?: (item: TokenMetdata) => void;
+  item: TokenMetdata;
+  isMarketplace?: boolean;
+};
+const NFTItemWrapper: React.FC<PropsWithChildren<NFTItemWrapperProps>> = ({
+  item,
+  children,
+  onItemClicked,
+  isMarketplace,
+}) => {
+  if (onItemClicked) {
+    return (
+      <div
+        className="bg-[#22B78F]/10 border-2 border-primary p-5 space-y-5 w-full"
+        onClick={() => onItemClicked(item)}
+      >
+        {children}
+      </div>
+    );
+  }
   return (
     <Link
-      key={item.mint.toString()}
       href={
         isMarketplace && "marketId" in item
           ? `/marketplace/${item.mint.toString()}`
           : `/nfts/${item.mint.toString()}`
       }
     >
+      {children}
+    </Link>
+  );
+};
+
+const ListNFTItem = ({ isMarketplace, item, onItemClicked }: Props) => {
+  const { data: metadata } = useAssetMetadata(item.data.uri);
+
+  return (
+    <NFTItemWrapper item={item} onItemClicked={onItemClicked} isMarketplace={isMarketplace}>
       <div className="bg-[#22B78F]/10 border-2 border-primary p-5 space-y-5 w-full">
         <div className="aspect-square bg-gray-500/20">
           {metadata?.image ? (
@@ -54,7 +83,7 @@ const ListNFTItem = ({ isMarketplace, item }: Props) => {
             )} */}
         </div>
       </div>
-    </Link>
+    </NFTItemWrapper>
   );
 };
 

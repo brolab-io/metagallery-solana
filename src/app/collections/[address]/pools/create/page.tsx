@@ -114,8 +114,8 @@ const CreatePoolPage: React.FC<Props> = ({ params: { address } }) => {
           {...register("id", {
             required: "Id is required",
             maxLength: {
-              value: 32,
-              message: "Id must be less than 32 characters",
+              value: 16,
+              message: "Id must be less than 16 characters",
             },
           })}
         />
@@ -126,8 +126,8 @@ const CreatePoolPage: React.FC<Props> = ({ params: { address } }) => {
           {...register("name", {
             required: "Name is required",
             maxLength: {
-              value: 32,
-              message: "Name must be less than 32 characters",
+              value: 16,
+              message: "Name must be less than 16 characters",
             },
           })}
         />

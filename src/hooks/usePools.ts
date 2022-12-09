@@ -10,7 +10,7 @@ type Result = {
   error: unknown;
 };
 
-const usePools = (collectionAddress: string) => {
+const usePools = (collectionAddress?: string) => {
   const { connection } = useConnection();
   const [result, setResult] = useState<Result>({
     isLoading: false,
@@ -24,7 +24,7 @@ const usePools = (collectionAddress: string) => {
       const data = await getStakingPoolsFromCollection(
         connection,
         undefined,
-        new PublicKey(collectionAddress)
+        collectionAddress ? new PublicKey(collectionAddress) : undefined
       );
       const readablePools = data.map(Pool.deserializeToReadable);
       setResult({ isLoading: false, data: readablePools, error: null });
