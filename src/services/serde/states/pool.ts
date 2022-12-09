@@ -11,7 +11,7 @@ export type TPool = {
   startAt: BN;
   poolType: number;
   creator: Uint8Array;
-  colletion: Uint8Array;
+  collection: Uint8Array;
 };
 
 export type TReadablePool = {
@@ -23,6 +23,7 @@ export type TReadablePool = {
   startAt: BN;
   poolType: number;
   creator: string;
+  collection: string;
 };
 export class Pool {
   id;
@@ -51,7 +52,7 @@ export class Pool {
     this.rewardPeriod = fields.rewardPeriod;
     this.startAt = fields.startAt;
     this.creator = fields.creator;
-    this.collection = fields.colletion;
+    this.collection = fields.collection;
     this.poolType = fields.poolType;
   }
 
@@ -75,7 +76,8 @@ export class Pool {
       creator,
       collection,
     } = borsh.deserialize(PoolSchema, Pool, raw);
-    // convert unit8Array to string
+
+    // console.log(borsh.deserialize(PoolSchema, Pool, raw));
 
     return {
       id: Buffer.from(id).toString(),
@@ -86,6 +88,7 @@ export class Pool {
       startAt,
       poolType,
       creator: new PublicKey(creator).toBase58(),
+      collection: new PublicKey(collection).toBase58(),
     };
   }
 }

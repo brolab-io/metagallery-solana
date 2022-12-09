@@ -1,21 +1,78 @@
 import { Transition } from "@headlessui/react";
-import { useCallback } from "react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useCallback, useState } from "react";
+import { toast } from "react-toastify";
 import useAssets from "../../hooks/useAssets";
+import { stakeNft, TokenMetdata } from "../../services/nft.service";
 import ListNFT from "../NFT/ListNFT";
 import BoxFrame from "../__UI/BoxFrame";
+import LoadingOverlay from "../__UI/LoadingOverlay";
 
 type Props = {
   show: boolean;
   setShow: (show: boolean) => void;
-  poolId: string;
-  collectionAddress: string;
+  collection: string;
   callback?: () => void;
+  poolId: string;
 };
 
-const StakeNftModal = ({ show, setShow, callback, collectionAddress }: Props) => {
-  const { data: nfts, isLoading } = useAssets("nft", collectionAddress);
+const StakeNftModal = ({ show, setShow, callback, collection, poolId }: Props) => {
+  const { data: nfts, isLoading } = useAssets("nft", collection);
+  const [isStaking, setIsStaking] = useState(false);
+  const wallet = useWallet();
+  const { connection } = useConnection();
 
-  const onNFTClick = useCallback(() => {}, []);
+  const onNFTClick = useCallback(
+    async (item: TokenMetdata) => {
+      // setShow(false);
+      // callback?.();
+      let toastId: ReturnType<typeof toast> | null = null;
+      try {
+        toastId = toast.info("Staking NFT...", {
+          autoClose: false,
+          isLoading: true,
+        });
+        setIsStaking(true);
+        const txid = await stakeNft(
+          wallet,
+          {
+            stakingTokenMintAddress: item.mint,
+            poolId,
+          },
+          connection
+        );
+        toast.update(toastId, {
+          render: (
+            <a
+              target="_blank"
+              href={`https://explorer.solana.com/tx/${txid}?cluster=devnet`}
+              rel="noreferrer"
+            >
+              NFT staked successfully, View on Solana Explorer
+            </a>
+          ),
+          type: "success",
+          isLoading: false,
+          autoClose: 3000,
+        });
+        setShow(false);
+        callback?.();
+      } catch (error) {
+        console.warn(error);
+        if (toastId) {
+          toast.update(toastId, {
+            type: "error",
+            render: "Staking NFT failed!",
+            autoClose: 3000,
+            isLoading: false,
+          });
+        }
+      } finally {
+        setIsStaking(false);
+      }
+    },
+    [callback, connection, poolId, setShow, wallet]
+  );
 
   return (
     <Transition
@@ -28,7 +85,7 @@ const StakeNftModal = ({ show, setShow, callback, collectionAddress }: Props) =>
       leaveTo="opacity-0"
     >
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-        <div className="bg-[#0C1226] w-full max-w-[90vw]">
+        <div className="bg-[#0C1226] w-full max-w-[90vw] relative">
           <BoxFrame className="p-8">
             <div className="flex items-center justify-between">
               <div className="text-2xl font-bold text-white">My NFTs (Select one to stake)</div>
@@ -49,8 +106,9 @@ const StakeNftModal = ({ show, setShow, callback, collectionAddress }: Props) =>
                 </svg>
               </button>
             </div>
-            <ListNFT nfts={nfts} isLoading={isLoading} />
+            <ListNFT onItemClicked={onNFTClick} nfts={nfts} isLoading={isLoading} />
           </BoxFrame>
+          <LoadingOverlay isLoading={isStaking} label="Staking NFT..." />
         </div>
       </div>
     </Transition>

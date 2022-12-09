@@ -9,6 +9,7 @@ import { partialMintNewEditionFromMaster } from "./nft/edition";
 import { sendTransaction } from "./solana.service";
 import { stakeAsset } from "./nft/stake";
 import { TokenData } from "./serde/states/token-data";
+import { pad } from "./util.service";
 
 type NftMetadata = {
   name: string;
@@ -25,7 +26,7 @@ type NftMetadata = {
 };
 
 export type TokenMetdata = Metadata & {
-  tokenData: TokenData | {};
+  tokenData?: TokenData;
 };
 
 export const getNftMetadataFromUri = async (uri: string): Promise<NftMetadata> => {
@@ -113,7 +114,7 @@ export async function getAssetsFromAddress(
       const data = await getMetaData(connection, m);
       return {
         ...data[0],
-        tokenData: tokenData[index] || {},
+        tokenData: tokenData[index] || undefined,
       } as TokenMetdata;
     })
   );
@@ -184,6 +185,11 @@ export async function stakeNft(provider: IWalletProvider, data: any, connection:
   if (!provider || !provider.publicKey) {
     throw new Error(`you must firstly connect to a wallet!`);
   }
+  const [pda] = PublicKey.findProgramAddressSync(
+    [Buffer.from(pad(data.poolId, 16)), Buffer.from("pool")],
+    new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!)
+  );
+  data.poolPda = pda;
   const serializedTx = await stakeAsset(connection, provider.publicKey, data);
   return sendTransaction(connection, provider, [serializedTx]);
 }

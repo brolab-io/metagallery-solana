@@ -62,9 +62,8 @@ export async function getStakingPoolById(connection: Connection, id: string) {
     [Buffer.from(pad(id, 16)), Buffer.from("pool")],
     new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!)
   );
-  console.log("getStakingPoolByName", pda.toBase58());
+  console.log("getStakingPoolById", pda.toBase58());
   const rawPool = await connection.getAccountInfo(pda);
-  console.log("rawPool", rawPool);
   if (!rawPool) {
     throw new Error("Pool not found");
   }

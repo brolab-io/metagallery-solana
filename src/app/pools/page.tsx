@@ -1,6 +1,7 @@
 "use client";
 
 import ListPool from "../../components/Pool/ListPool";
+import Container from "../../components/__UI/Container";
 import Loading from "../../components/__UI/Loading";
 import usePools from "../../hooks/usePools";
 
@@ -20,9 +21,9 @@ const PoolsPage = () => {
   }
 
   return (
-    <div>
+    <Container className="py-6 sm:py-8 md:py-12 lg:py-16 xl:py-20">
       <ListPool />
-    </div>
+    </Container>
   );
 };
 

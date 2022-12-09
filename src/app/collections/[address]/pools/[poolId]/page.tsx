@@ -86,10 +86,11 @@ const PoolPage = ({ params: { poolId, address: collectionAddress } }: Props) => 
         </div>
       </div>
       <StakeNftModal
-        collectionAddress={collectionAddress}
+        // collectionAddress={collectionAddress}
         show={isShowingStakeNFTModal}
         setShow={setIsShowingStakeNFTModal}
         poolId={poolId}
+        collection={collectionAddress}
       />
     </>
   );

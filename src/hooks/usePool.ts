@@ -1,5 +1,5 @@
 import { useConnection } from "@solana/wallet-adapter-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getStakingPoolById } from "../services/pool.service";
 import { TReadablePool } from "../services/serde/states/pool";
 
@@ -12,19 +12,19 @@ type Result = {
 const usePool = (poolId: string) => {
   const { connection } = useConnection();
   const [result, setResult] = useState<Result>({
-    isLoading: false,
+    isLoading: true,
     data: null,
     error: null,
   });
 
   const fetchPool = useCallback(async () => {
-    setResult({ isLoading: true, data: null, error: null });
+    setResult((prev) => ({ ...prev, isLoading: true }));
     try {
       const data = await getStakingPoolById(connection, poolId);
       setResult({ isLoading: false, data, error: null });
     } catch (error) {
       console.warn(error);
-      setResult({ isLoading: false, data: null, error });
+      setResult((prev) => ({ ...prev, isLoading: false, error }));
     }
   }, [connection, poolId]);
 
@@ -32,7 +32,7 @@ const usePool = (poolId: string) => {
     fetchPool();
   }, [fetchPool]);
 
-  return result;
+  return useMemo(() => ({ ...result, refetch: fetchPool }), [result, fetchPool]);
 };
 
 export default usePool;

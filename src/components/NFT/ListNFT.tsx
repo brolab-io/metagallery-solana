@@ -10,9 +10,16 @@ type Props = {
   nfts: TokenMetdata[];
   isLoading?: boolean;
   onItemClicked?: (item: TokenMetdata) => void;
+  renderActions?: (item: TokenMetdata) => JSX.Element;
 };
 
-const ListNFT: React.FC<Props> = ({ isMarketplace, nfts, isLoading, onItemClicked }) => {
+const ListNFT: React.FC<Props> = ({
+  isMarketplace,
+  nfts,
+  isLoading,
+  onItemClicked,
+  renderActions,
+}) => {
   const { publicKey } = useWallet();
 
   const helpText = useMemo(() => {
@@ -44,6 +51,7 @@ const ListNFT: React.FC<Props> = ({ isMarketplace, nfts, isLoading, onItemClicke
           onItemClicked={onItemClicked}
           isMarketplace={isMarketplace}
           item={nft}
+          renderActions={renderActions}
         />
       ))}
     </div>

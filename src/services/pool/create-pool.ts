@@ -38,7 +38,7 @@ export async function createPool(
   const newId = pad(id, 16);
   const newName = pad(name, 16);
 
-  const [pda] = await PublicKey.findProgramAddress(
+  const [pda] = PublicKey.findProgramAddressSync(
     [Buffer.from(newId), Buffer.from("pool")],
     new PublicKey(NEXT_PUBLIC_SC_ADDRESS)
   );

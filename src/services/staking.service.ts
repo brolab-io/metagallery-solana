@@ -6,8 +6,9 @@ import { withdraw } from "./pool/withdraw-nft";
 import { sendTransaction } from "./solana.service";
 import base58 from "bs58";
 import { StakingAccount } from "./serde/states/stake";
-import { getMultiMetaData, getMultiTokenData } from "./nft.service";
+import { getMultiMetaData, getMultiTokenData, TokenMetdata } from "./nft.service";
 import { PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
+import { pad } from "./util.service";
 
 export async function redeem(provider: IWalletProvider, data: any = {}, connection: Connection) {
   if (!provider || !provider.publicKey) {
@@ -37,6 +38,22 @@ export async function withdrawNft(
   });
   return sendTransaction(connection, provider, [serializedTx]);
 }
+
+export async function getStakedNftForPool(
+  connection: Connection,
+  userPublicKey: PublicKey,
+  poolId: string
+) {
+  const [pda] = PublicKey.findProgramAddressSync(
+    [Buffer.from(pad(poolId, 16)), Buffer.from("pool")],
+    new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!)
+  );
+  console.log("getStakedNftForPool", pda.toBase58());
+  const programId = new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!);
+
+  return await getStakingsForAddress(connection, userPublicKey, programId);
+}
+
 export async function getStakingsForAddress(
   connection: Connection,
   address: PublicKey,
@@ -96,6 +113,6 @@ export async function getStakingsForAddress(
     mintData: {
       ...flattenedMintDatas[i][0],
       tokenData: flattenedTokenDatas[i],
-    },
+    } as TokenMetdata,
   }));
 }

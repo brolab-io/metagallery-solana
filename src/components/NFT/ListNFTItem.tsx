@@ -8,14 +8,10 @@ type Props = {
   isMarketplace?: boolean;
   item: TokenMetdata;
   onItemClicked?: (item: TokenMetdata) => void;
+  renderActions?: (item: TokenMetdata) => JSX.Element;
 };
 
-type NFTItemWrapperProps = {
-  onItemClicked?: (item: TokenMetdata) => void;
-  item: TokenMetdata;
-  isMarketplace?: boolean;
-};
-const NFTItemWrapper: React.FC<PropsWithChildren<NFTItemWrapperProps>> = ({
+const NFTItemWrapper: React.FC<PropsWithChildren<Props>> = ({
   item,
   children,
   onItemClicked,
@@ -24,7 +20,7 @@ const NFTItemWrapper: React.FC<PropsWithChildren<NFTItemWrapperProps>> = ({
   if (onItemClicked) {
     return (
       <div
-        className="bg-[#22B78F]/10 border-2 border-primary p-5 space-y-5 w-full"
+        className="bg-[#22B78F]/10 border-2 border-primary p-5 space-y-5 w-full cursor-pointer hover:brightness-125"
         onClick={() => onItemClicked(item)}
       >
         {children}
@@ -39,49 +35,48 @@ const NFTItemWrapper: React.FC<PropsWithChildren<NFTItemWrapperProps>> = ({
           : `/nfts/${item.mint.toString()}`
       }
     >
-      {children}
+      <div className="bg-[#22B78F]/10 border-2 border-primary p-5 space-y-5 w-full">{children}</div>
     </Link>
   );
 };
 
-const ListNFTItem = ({ isMarketplace, item, onItemClicked }: Props) => {
+const ListNFTItem: React.FC<Props> = ({ isMarketplace, item, onItemClicked, renderActions }) => {
   const { data: metadata } = useAssetMetadata(item.data.uri);
 
   return (
     <NFTItemWrapper item={item} onItemClicked={onItemClicked} isMarketplace={isMarketplace}>
-      <div className="bg-[#22B78F]/10 border-2 border-primary p-5 space-y-5 w-full">
-        <div className="aspect-square bg-gray-500/20">
-          {metadata?.image ? (
-            <Image
-              src={`/api/imageProxy?imageUrl=${metadata?.image}`}
-              alt="Gallery"
-              loading="lazy"
-              width={290}
-              height={290}
-              quality={100}
-              className="object-cover aspect-square"
-            />
-          ) : (
-            <div className="w-full aspect-square"></div>
-          )}
+      <div className="aspect-square bg-gray-500/20">
+        {metadata?.image ? (
+          <Image
+            src={`/api/imageProxy?imageUrl=${metadata?.image}`}
+            alt="Gallery"
+            loading="lazy"
+            width={290}
+            height={290}
+            quality={100}
+            className="object-cover aspect-square"
+          />
+        ) : (
+          <div className="w-full aspect-square"></div>
+        )}
+      </div>
+      <div className="w-full truncate text-white font-bold text-[16px] sm:text-[17px] md:text-[18px] lg:text-[19px] xl:text-[20px]">
+        {metadata?.name || item.data.name}
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[15px] text-[#6B7280] font-bold">Power</span>
+          <span className="text-white font-bold text-[20px]">
+            {item.tokenData?.power.toString() || 1}
+          </span>
         </div>
-        <div className="w-full truncate text-white font-bold text-[16px] sm:text-[17px] md:text-[18px] lg:text-[19px] xl:text-[20px]">
-          {metadata?.name || item.data.name}
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[15px] text-[#6B7280] font-bold">Power</span>
-            <span className="text-white font-bold text-[20px]">
-              {"power" in item.tokenData && item.tokenData.power.toString()}
-            </span>
-          </div>
-          {/* {"marketPrice" in item && (
+        {renderActions?.(item)}
+        {/* {"marketPrice" in item && (
               <div className="flex items-center justify-between">
                 <span className="text-[15px] text-[#6B7280] font-bold">Sale price</span>
                 <span className="text-white font-bold text-[20px]">{nft.marketPrice} SOL</span>
               </div>
             )} */}
-        </div>
       </div>
     </NFTItemWrapper>
   );
