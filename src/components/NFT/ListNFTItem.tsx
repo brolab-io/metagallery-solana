@@ -35,7 +35,7 @@ const NFTItemWrapper: React.FC<PropsWithChildren<Props>> = ({
           : `/nfts/${item.mint.toString()}`
       }
     >
-      <div className="bg-[#22B78F]/10 border-2 border-primary p-5 space-y-5 w-full">{children}</div>
+      <div className="bg-[#22B78F]/10 border-2 border-primary p-4 space-y-3 w-full">{children}</div>
     </Link>
   );
 };
@@ -61,7 +61,10 @@ const ListNFTItem: React.FC<Props> = ({ isMarketplace, item, onItemClicked, rend
         )}
       </div>
       <div className="w-full truncate text-white font-bold text-[16px] sm:text-[17px] md:text-[18px] lg:text-[19px] xl:text-[20px]">
-        {metadata?.name || item.data.name}
+        {metadata?.name || ""}
+        <p className="text-[12px] md:text-[14px] lg:text-[16px] text-[#bbbbbb]">
+          {metadata?.description || ""}
+        </p>
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">

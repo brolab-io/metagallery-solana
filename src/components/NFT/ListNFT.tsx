@@ -32,7 +32,7 @@ const ListNFT: React.FC<Props> = ({
     return "";
   }, [nfts.length, publicKey]);
 
-  if (isLoading) {
+  if (!nfts.length && isLoading) {
     return <Loading label="Loading NFTs..." />;
   }
 

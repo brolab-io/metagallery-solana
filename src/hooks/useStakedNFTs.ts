@@ -25,6 +25,7 @@ const useStakedNFTs = (poolId: string) => {
     setResult((prev) => ({ ...prev, isLoading: true }));
     try {
       const data = await getStakedNftForPool(connection, publicKey, poolId);
+      console.log(`fetchStakedNFTs for ${poolId}`, data);
       setResult({ isLoading: false, data, error: null });
     } catch (error) {
       console.warn(error);
