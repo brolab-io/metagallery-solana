@@ -10,18 +10,27 @@ const Countdown = ({ unixTime }: Props) => {
   const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
     const calculateTimeLeft = () => {
       const now = Math.floor(Date.now() / 1000);
       const timeLeft = unixTime - now;
       if (timeLeft <= 0) {
         setIsExpired(true);
-        clearInterval(interval);
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
       }
       setTimeLeft(timeLeft);
     };
     calculateTimeLeft();
-    const interval = setInterval(calculateTimeLeft, 1000);
-    return () => clearInterval(interval);
+    interval = setInterval(calculateTimeLeft, 1000);
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
   }, [unixTime]);
 
   if (isExpired) {

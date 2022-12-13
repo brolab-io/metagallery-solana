@@ -33,9 +33,7 @@ const PoolPage = ({ params: { poolId } }: Props) => {
     isLoading: isLoadingStakedNFTs,
     refetch: refetchStakedNFTs,
   } = useStakedNFTs(poolId);
-  const { data: poolRewardData, isLoading: isFetchingPoolReward } = usePoolRewards(poolId, "100");
-
-  console.log("poolRewardData", poolRewardData);
+  const { data: poolRewardData, isLoading: isFetchingPoolReward } = usePoolRewards(poolId);
 
   const [isShowingStakeNFTModal, setIsShowingStakeNFTModal] = useState(false);
   const [isShowingAddRewardModal, setIsShowingAddRewardModal] = useState(false);
@@ -44,15 +42,29 @@ const PoolPage = ({ params: { poolId } }: Props) => {
   const wallet = useWallet();
 
   const stakedNFTData = useMemo(() => {
-    console.log(stakedNFTsData);
+    const myStakedPower = stakedNFTsData.reduce(
+      (acc, item) => acc.add(item.mintData.tokenData?.power || new BN(1)),
+      new BN(0)
+    );
+    let myRewardPercent = new BN(0);
+    const totalDepositedPower = data?.totalDepositedPower || new BN(0);
+    if (!myStakedPower.isZero() && !totalDepositedPower.isZero()) {
+      const rewardPreiod = new BN(data?.rewardPeriod || 0);
+      const startAt = new BN(data?.startAt || 0);
+      const now = new BN(Math.floor(Date.now() / 1000));
+      const secondsPassed = now.sub(startAt);
+      const myStakedPowerPercent = myStakedPower.mul(new BN(100)).div(totalDepositedPower);
+      const secondsPassedPercent = secondsPassed.mul(new BN(100)).div(rewardPreiod);
+      const myRewardPercent = myStakedPowerPercent.mul(secondsPassedPercent).div(new BN(100));
+      console.log("secondsPassed", secondsPassed.toString());
+      console.log(myRewardPercent.mul(new BN(100000000000)).toString());
+    }
+
     return {
       tokens: stakedNFTsData.map((item) => item.mintData),
-      myStakedPower: stakedNFTsData.reduce(
-        (acc, item) => acc.add(item.mintData.tokenData?.power || new BN(1)),
-        new BN(0)
-      ),
+      myStakedPower,
     };
-  }, [stakedNFTsData]);
+  }, [data?.rewardPeriod, data?.startAt, data?.totalDepositedPower, stakedNFTsData]);
 
   const refetchData = useCallback(() => {
     setTimeout(() => {
