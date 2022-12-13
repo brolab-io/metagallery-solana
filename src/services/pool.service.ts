@@ -79,8 +79,12 @@ export async function updateStakingReward(
     throw new Error(`you must firstly connect to a wallet!`);
   }
   const pk = provider.publicKey;
+  const [pda] = PublicKey.findProgramAddressSync(
+    [Buffer.from(pad(data.poolId, 16)), Buffer.from("pool")],
+    new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!)
+  );
   const serializedTx = await updateReward(connection, pk, {
-    poolPda: new PublicKey(data.poolPda),
+    poolPda: pda,
     amount: new BN(data.amount),
     rewardTokenMint: new PublicKey(data.rewardTokenMint),
     payrollIndex: data.payrollIndex ? new BN(data.payrollIndex) : null,

@@ -3,6 +3,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import ListNFT from "../../../components/NFT/ListNFT";
+import AddRewardModal from "../../../components/Pool/AddRewardModal";
 import StakeNftModal from "../../../components/Pool/StakeNftModal";
 import BoxFrame from "../../../components/__UI/BoxFrame";
 import Button from "../../../components/__UI/Button";
@@ -29,6 +30,8 @@ const PoolPage = ({ params: { poolId } }: Props) => {
   } = useStakedNFTs(poolId);
 
   const [isShowingStakeNFTModal, setIsShowingStakeNFTModal] = useState(false);
+  const [isShowingAddRewardModal, setIsShowingAddRewardModal] = useState(false);
+
   const { connection } = useConnection();
   const wallet = useWallet();
 
@@ -45,6 +48,10 @@ const PoolPage = ({ params: { poolId } }: Props) => {
 
   const showStakeNFTModal = useCallback(() => {
     return setIsShowingStakeNFTModal(true);
+  }, []);
+
+  const showAddRewardModal = useCallback(() => {
+    return setIsShowingAddRewardModal(true);
   }, []);
 
   const unstakeNFT = useCallback(
@@ -105,6 +112,12 @@ const PoolPage = ({ params: { poolId } }: Props) => {
       <Container className="py-6 space-y-10 sm:py-8 md:py-12 lg:py-16 xl:py-20">
         <div className="space-y-2.5">
           <H1>Pool Info</H1>
+          <div className="flex items-center justify-between">
+            <H1>Pool Info</H1>
+            <Button sm onClick={showAddRewardModal}>
+              UPDATE REWARD
+            </Button>
+          </div>
           <BoxFrame>
             <div className="py-16 md:py-20 lg:py-30">
               <div className="flex flex-col items-center font-bold">
@@ -159,6 +172,12 @@ const PoolPage = ({ params: { poolId } }: Props) => {
         show={isShowingStakeNFTModal}
         setShow={setIsShowingStakeNFTModal}
         collection={data.collection}
+        poolId={data.id}
+        callback={refetchData}
+      />
+      <AddRewardModal
+        show={isShowingAddRewardModal}
+        setShow={setIsShowingAddRewardModal}
         poolId={data.id}
         callback={refetchData}
       />
