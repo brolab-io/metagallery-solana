@@ -8,7 +8,8 @@ import base58 from "bs58";
 import { StakingAccount } from "./serde/states/stake";
 import { getMultiMetaData, getMultiTokenData, TokenMetdata } from "./nft.service";
 import { PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
-import { pad } from "./util.service";
+import { getCurrentPayrollIndex, pad } from "./util.service";
+import { Pool } from "./serde/states/pool";
 
 export async function redeem(provider: IWalletProvider, data: any = {}, connection: Connection) {
   if (!provider || !provider.publicKey) {
@@ -37,6 +38,31 @@ export async function withdrawNft(
     pdaAccount: new PublicKey(data.pdaAccount),
   });
   return sendTransaction(connection, provider, [serializedTx]);
+}
+
+export async function getPoolRewards(
+  connection: Connection,
+  {
+    poolPda,
+    payrollIndex,
+  }: {
+    poolPda: PublicKey;
+    payrollIndex?: BN;
+  }
+) {
+  const poolPdaInfo = await connection.getAccountInfo(poolPda);
+  const parsedPoolData = Pool.deserialize(poolPdaInfo?.data as Buffer);
+  const programId = new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!);
+  const currentPayrollIndex = getCurrentPayrollIndex(
+    Math.floor(Date.now() / 1000),
+    parsedPoolData.rewardPeriod.toNumber(),
+    parsedPoolData.startAt.toNumber()
+  );
+  const validPayrollIndex = payrollIndex ? payrollIndex : new BN(currentPayrollIndex);
+  const [payrollPda] = await PublicKey.findProgramAddress(
+    [Buffer.from("payroll"), Buffer.from(validPayrollIndex.toString()), poolPda.toBuffer()],
+    programId
+  );
 }
 
 export async function getStakedNftForPool(
