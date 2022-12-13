@@ -51,7 +51,7 @@ export class Payroll implements TPayroll {
 
 export const fields = [
   ["accountType", "u8"],
-  ["totalDepositedAmount", "u64"],
+  ["totalDepositedPower", "u64"],
   ["index", "u64"],
   ["numberOfRewardTokens", "u64"],
   ["claimableAfter", "u64"],

@@ -15,6 +15,7 @@ import { Pool } from "../serde/states/pool";
 import { getCurrentPayrollIndex } from "../util.service";
 import { UpdateRewarderInstruction } from "../serde/instructions/update-reward";
 import { Payroll } from "../serde/states/payroll";
+
 export async function updateReward(
   connection: Connection,
   creator: PublicKey,

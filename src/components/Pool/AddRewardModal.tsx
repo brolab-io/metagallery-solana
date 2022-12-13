@@ -1,8 +1,11 @@
 import { Transition } from "@headlessui/react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 import { updateStakingReward } from "../../services/pool.service";
+import { TReadablePool } from "../../services/serde/states/pool";
+import { getCurrentPayrollIndex } from "../../services/util.service";
 import BoxFrame from "../__UI/BoxFrame";
 import Button from "../__UI/Button";
 import LableInput from "../__UI/LableInput";
@@ -10,8 +13,9 @@ import LableInput from "../__UI/LableInput";
 type Props = {
   show: boolean;
   setShow: (show: boolean) => void;
-  poolId: string;
+  poolData?: TReadablePool | null;
   callback?: () => void;
+  poolId: string;
 };
 
 type FormValues = {
@@ -20,14 +24,20 @@ type FormValues = {
   payrollIndex?: string;
 };
 
-const AddRewardModal = ({ show, setShow, poolId, callback }: Props) => {
-  const { handleSubmit, register } = useForm<FormValues>();
+const AddRewardModal = ({ show, setShow, poolData, callback, poolId }: Props) => {
+  const { handleSubmit, register, setValue } = useForm<FormValues>();
   const { connection } = useConnection();
   const wallet = useWallet();
   const [isDepositting, setIsDepositting] = useState(false);
+  const [currentPayrollIndex, setCurrentPayrollIndex] = useState(0);
 
   const onSubmit = handleSubmit(async (values) => {
     setIsDepositting(true);
+    let toastId = toast.info("Depositing...", {
+      autoClose: false,
+      isLoading: true,
+    });
+
     try {
       await updateStakingReward(
         wallet,
@@ -39,14 +49,38 @@ const AddRewardModal = ({ show, setShow, poolId, callback }: Props) => {
         },
         connection
       );
+      toast.update(toastId, {
+        render: "Reward added successfully",
+        type: "success",
+        autoClose: 3000,
+        isLoading: false,
+      });
     } catch (error) {
       console.warn(error);
+      toast.update(toastId, {
+        render: "Error adding reward",
+        type: "error",
+        autoClose: 3000,
+        isLoading: false,
+      });
     } finally {
       setIsDepositting(false);
       setShow(false);
       callback?.();
     }
   });
+
+  useEffect(() => {
+    if (poolData && poolData.rewardPeriod && poolData.startAt) {
+      const currentIndex = getCurrentPayrollIndex(
+        Math.floor(Date.now() / 1000),
+        poolData.rewardPeriod.toNumber(),
+        poolData.startAt.toNumber()
+      );
+      setValue("payrollIndex", currentIndex.toString());
+      setCurrentPayrollIndex(currentIndex);
+    }
+  }, [poolData, setValue]);
 
   return (
     <Transition
@@ -60,9 +94,9 @@ const AddRewardModal = ({ show, setShow, poolId, callback }: Props) => {
     >
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
         <form onSubmit={onSubmit} className="bg-[#0C1226]">
-          <BoxFrame className="p-8 w-[460px] max-w-[90w]">
+          <BoxFrame className="p-8 w-[640px] max-w-[90w]">
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-white">Deposit</div>
+              <div className="text-3xl font-bold text-white">Add Reward</div>
               <button disabled={isDepositting} type="button" onClick={() => setShow(false)}>
                 <svg
                   className="w-6 h-6 text-white fill-current"
@@ -80,10 +114,13 @@ const AddRewardModal = ({ show, setShow, poolId, callback }: Props) => {
                 </svg>
               </button>
             </div>
-            <div className="mt-6">
+            <div className="mt-6 space-y-6">
               <LableInput label="Reward Token" {...register("rewardTokenMint")} />
               <LableInput label="Amount" {...register("amount")} />
-              <LableInput label="Payroll Index" {...register("payrollIndex")} />
+              <LableInput
+                label={`Payroll Index (Current is: ${currentPayrollIndex})`}
+                {...register("payrollIndex")}
+              />
             </div>
             <div className="mt-6">
               <Button type="submit" isLoading={isDepositting} className="w-full">

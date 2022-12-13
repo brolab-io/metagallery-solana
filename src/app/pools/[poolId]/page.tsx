@@ -1,16 +1,21 @@
 "use client";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { BN } from "bn.js";
+import clsx from "clsx";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import ListNFT from "../../../components/NFT/ListNFT";
 import AddRewardModal from "../../../components/Pool/AddRewardModal";
+import ListStakedNFT from "../../../components/Pool/ListStakedNFT";
+import PoolReward from "../../../components/Pool/PoolReward";
 import StakeNftModal from "../../../components/Pool/StakeNftModal";
 import BoxFrame from "../../../components/__UI/BoxFrame";
 import Button from "../../../components/__UI/Button";
 import Container from "../../../components/__UI/Container";
+import Countdown from "../../../components/__UI/Countdown";
 import H1 from "../../../components/__UI/H1";
 import Loading from "../../../components/__UI/Loading";
 import usePool from "../../../hooks/usePool";
+import usePoolRewards from "../../../hooks/usePoolRewards";
 import useStakedNFTs from "../../../hooks/useStakedNFTs";
 import { TokenMetdata } from "../../../services/nft.service";
 import { withdrawNft } from "../../../services/staking.service";
@@ -28,6 +33,9 @@ const PoolPage = ({ params: { poolId } }: Props) => {
     isLoading: isLoadingStakedNFTs,
     refetch: refetchStakedNFTs,
   } = useStakedNFTs(poolId);
+  const { data: poolRewardData, isLoading: isFetchingPoolReward } = usePoolRewards(poolId, "100");
+
+  console.log("poolRewardData", poolRewardData);
 
   const [isShowingStakeNFTModal, setIsShowingStakeNFTModal] = useState(false);
   const [isShowingAddRewardModal, setIsShowingAddRewardModal] = useState(false);
@@ -35,8 +43,15 @@ const PoolPage = ({ params: { poolId } }: Props) => {
   const { connection } = useConnection();
   const wallet = useWallet();
 
-  const stakedNFTs = useMemo(() => {
-    return stakedNFTsData.map((item) => item.mintData);
+  const stakedNFTData = useMemo(() => {
+    console.log(stakedNFTsData);
+    return {
+      tokens: stakedNFTsData.map((item) => item.mintData),
+      myStakedPower: stakedNFTsData.reduce(
+        (acc, item) => acc.add(item.mintData.tokenData?.power || new BN(1)),
+        new BN(0)
+      ),
+    };
   }, [stakedNFTsData]);
 
   const refetchData = useCallback(() => {
@@ -109,14 +124,10 @@ const PoolPage = ({ params: { poolId } }: Props) => {
 
   return (
     <>
-      <Container className="py-6 space-y-10 sm:py-8 md:py-12 lg:py-16 xl:py-20">
+      <Container className="py-6 space-y-3 md:space-y-4 lg:space-y-6 sm:py-8 md:py-12 lg:py-16 xl:py-20">
         <div className="space-y-2.5">
-          <H1>Pool Info</H1>
           <div className="flex items-center justify-between">
             <H1>Pool Info</H1>
-            <Button sm onClick={showAddRewardModal}>
-              UPDATE REWARD
-            </Button>
           </div>
           <BoxFrame>
             <div className="py-16 md:py-20 lg:py-30">
@@ -126,16 +137,81 @@ const PoolPage = ({ params: { poolId } }: Props) => {
                     {data.name}
                   </h2>
                 </div>
-                <span className="text-[28px] md:text-[36px] lg:text-[42px] text-white">
-                  Total Power: {data.totalDepositedPower.toString()}
-                </span>
                 <span className="text-[28px] md:text-[36px] lg:text-[42px] text-[#8E8F99]">
-                  Reward Period: {data.rewardPeriod.toString()}
+                  Reward Period: {data.rewardPeriod.toString()} seconds
                 </span>
               </div>
             </div>
           </BoxFrame>
+          <div className="grid gap-5 py-10 md:grid-cols-2 lg:grid-cols-3">
+            <BoxFrame className="py-[38px] px-[34px]">
+              <div className="space-y-4 md:space-y-6 xl:space-y-8">
+                <div className="lg:text-[36px] md:text-[32px] sm:text-[28px] text-[24px] xl:text-[40px] font-bold text-white">
+                  Total Staked (Power)
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="lg:text-[56px] md:text-[48px] sm:text-[40px] text-[32px] xl:text-[64px] font-bold text-white">
+                    {data.totalDepositedPower.toString()}
+                  </div>
+                </div>
+              </div>
+            </BoxFrame>
+            <BoxFrame className="py-[38px] px-[34px]">
+              <div className="space-y-4 md:space-y-6 xl:space-y-8">
+                <div className="lg:text-[36px] md:text-[32px] sm:text-[28px] text-[24px] xl:text-[40px] font-bold text-white">
+                  My Staked (Power)
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="lg:text-[56px] md:text-[48px] sm:text-[40px] text-[32px] xl:text-[64px] font-bold text-white">
+                    {stakedNFTData.myStakedPower.toString()}
+                  </div>
+                </div>
+              </div>
+            </BoxFrame>
+            <BoxFrame className="py-[38px] px-[34px]">
+              <div className="space-y-4 lg:space-y-6">
+                <div className="lg:text-[36px] md:text-[32px] sm:text-[28px] text-[24px] xl:text-[40px] font-bold text-white">
+                  Reward Reset in
+                </div>
+                <div className="relative flex items-center">
+                  <div className="lg:text-[56px] md:text-[48px] sm:text-[40px] text-[32px] xl:text-[64px] font-bold text-white">
+                    {poolRewardData && <Countdown unixTime={poolRewardData?.claimableAfter} />}
+                  </div>
+                </div>
+              </div>
+            </BoxFrame>
+          </div>
         </div>
+
+        <div className="grid gap-6 lg:grid-cols-2 md:gap-8 lg:gap-10">
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <H1>POOL REWARDS</H1>
+              <Button sm onClick={showAddRewardModal}>
+                UPDATE REWARD
+              </Button>
+            </div>
+            <BoxFrame>
+              <div className="py-16 md:py-20 lg:py-30">
+                <PoolReward isLoading={isFetchingPoolReward} poolRewardData={poolRewardData} />
+              </div>
+            </BoxFrame>
+          </div>
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <H1>MY REWARDS</H1>
+              <Button sm onClick={showAddRewardModal}>
+                CLAIM
+              </Button>
+            </div>
+            <BoxFrame>
+              <div className="py-16 md:py-20 lg:py-30">
+                <PoolReward isLoading={isFetchingPoolReward} poolRewardData={poolRewardData} />
+              </div>
+            </BoxFrame>
+          </div>
+        </div>
+
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <H1>Staked NFTs</H1>
@@ -145,9 +221,10 @@ const PoolPage = ({ params: { poolId } }: Props) => {
           </div>
           <BoxFrame>
             <div className="p-6 md:p-8 lg:p-10">
-              <ListNFT
+              <ListStakedNFT
+                poolId={data.id}
                 isLoading={isLoadingStakedNFTs}
-                nfts={stakedNFTs}
+                nfts={stakedNFTData.tokens}
                 renderActions={(token) => (
                   <div className="flex justify-center pt-4">
                     <Button
@@ -180,6 +257,7 @@ const PoolPage = ({ params: { poolId } }: Props) => {
         setShow={setIsShowingAddRewardModal}
         poolId={data.id}
         callback={refetchData}
+        poolData={data}
       />
     </>
   );

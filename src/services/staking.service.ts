@@ -10,6 +10,9 @@ import { getMultiMetaData, getMultiTokenData, TokenMetdata } from "./nft.service
 import { PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 import { getCurrentPayrollIndex, pad } from "./util.service";
 import { Pool } from "./serde/states/pool";
+import { Payroll } from "./serde/states/payroll";
+import { PayrollIndex } from "./serde/states/payrollIndex";
+import { PayrollToken } from "./serde/states/payrollToken";
 
 export async function redeem(provider: IWalletProvider, data: any = {}, connection: Connection) {
   if (!provider || !provider.publicKey) {
@@ -40,29 +43,96 @@ export async function withdrawNft(
   return sendTransaction(connection, provider, [serializedTx]);
 }
 
+type Tokens = {
+  address: string;
+  amount: BN;
+};
+
 export async function getPoolRewards(
   connection: Connection,
   {
-    poolPda,
+    poolId,
     payrollIndex,
   }: {
-    poolPda: PublicKey;
+    poolId: string;
     payrollIndex?: BN;
   }
 ) {
+  const results: {
+    claimableAfter: number;
+    tokens: Tokens[];
+  } = {
+    claimableAfter: 0,
+    tokens: [],
+  };
+
+  const [poolPda] = await PublicKey.findProgramAddress(
+    [Buffer.from(pad(poolId, 16)), Buffer.from("pool")],
+    new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!)
+  );
+
   const poolPdaInfo = await connection.getAccountInfo(poolPda);
   const parsedPoolData = Pool.deserialize(poolPdaInfo?.data as Buffer);
+  const rewardPeriod = parsedPoolData.rewardPeriod.toNumber();
+  const startAt = parsedPoolData.startAt.toNumber();
+
   const programId = new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!);
   const currentPayrollIndex = getCurrentPayrollIndex(
     Math.floor(Date.now() / 1000),
-    parsedPoolData.rewardPeriod.toNumber(),
-    parsedPoolData.startAt.toNumber()
+    rewardPeriod,
+    startAt
   );
   const validPayrollIndex = payrollIndex ? payrollIndex : new BN(currentPayrollIndex);
+
   const [payrollPda] = await PublicKey.findProgramAddress(
     [Buffer.from("payroll"), Buffer.from(validPayrollIndex.toString()), poolPda.toBuffer()],
     programId
   );
+  const payrollPdaInfo = await connection.getAccountInfo(payrollPda);
+  if (!payrollPdaInfo) {
+    console.log("getPoolRewards", "payrollPdaInfo", "not found");
+    return results;
+  }
+  const payrollData = Payroll.deserialize(payrollPdaInfo.data);
+  const numberOfRewardToken = payrollData.numberOfRewardTokens.toNumber();
+  results.claimableAfter = payrollData.claimableAfter.toNumber();
+
+  const payrollIndexData = await connection.getMultipleAccountsInfo(
+    new Array(numberOfRewardToken).fill(0).map((_, i) => {
+      return PublicKey.findProgramAddressSync(
+        [Buffer.from("payrollindex"), Buffer.from(new BN(i + 1).toString()), payrollPda.toBuffer()],
+        programId
+      )[0];
+    })
+  );
+
+  const payrollIndexs = payrollIndexData.map((item) =>
+    PayrollIndex.deserializeToReadable(item?.data as Buffer)
+  );
+
+  const payrollTokenPdas = payrollIndexs.map(
+    (payrollIndex) =>
+      PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("payrolltoken"),
+          Buffer.from(validPayrollIndex.toString()),
+          new PublicKey(payrollIndex.rewardTokenMintAccount).toBuffer(),
+          payrollPda.toBuffer(),
+        ],
+        programId
+      )[0]
+  );
+  const payrollTokenPdaInfo = await connection.getMultipleAccountsInfo(payrollTokenPdas);
+  const payrollTokenData = payrollTokenPdaInfo.map((item) => {
+    return PayrollToken.deserializeToReadable(item?.data as Buffer);
+  });
+  results.tokens = payrollTokenData.map((item) => {
+    return {
+      address: item.rewardTokenMintAccount,
+      amount: item.totalRewardAmount,
+    };
+  });
+  return results;
 }
 
 export async function getStakedNftForPool(

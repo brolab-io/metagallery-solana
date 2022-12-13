@@ -1,40 +1,41 @@
 import { useConnection } from "@solana/wallet-adapter-react";
-import { PublicKey } from "@solana/web3.js";
-import { useCallback, useEffect, useState } from "react";
-import { getStakingPoolsFromCollection } from "../services/pool.service";
-import { Pool, TReadablePool } from "../services/serde/states/pool";
+import { BN } from "bn.js";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { getPoolRewards } from "../services/staking.service";
 
 type Result = {
   isLoading: boolean;
-  data: TReadablePool[];
+  data: Awaited<ReturnType<typeof getPoolRewards>> | null;
   error: unknown;
 };
 
-const usePoolRewards = (poolId: string) => {
+const usePoolRewards = (poolId: string, payrollIndex?: string) => {
   const { connection } = useConnection();
   const [result, setResult] = useState<Result>({
-    isLoading: false,
-    data: [],
+    isLoading: true,
+    data: null,
     error: null,
   });
 
-  const fetchPools = useCallback(async () => {
-    setResult({ isLoading: true, data: [], error: null });
+  const fetchPoolRewards = useCallback(async () => {
+    setResult((prev) => ({ ...prev, isLoading: true }));
     try {
-      const data = await getStakingPoolsFromCollection(connection, undefined);
-      const readablePools = data.map(Pool.deserializeToReadable);
-      setResult({ isLoading: false, data: readablePools, error: null });
+      const data = await getPoolRewards(connection, {
+        poolId,
+        payrollIndex: payrollIndex ? new BN(payrollIndex) : undefined,
+      });
+      setResult({ isLoading: false, data, error: null });
     } catch (error) {
       console.warn(error);
-      setResult({ isLoading: false, data: [], error });
+      setResult((prev) => ({ ...prev, isLoading: false, error }));
     }
-  }, [connection]);
+  }, [connection, payrollIndex, poolId]);
 
   useEffect(() => {
-    fetchPools();
-  }, [fetchPools]);
+    fetchPoolRewards();
+  }, [fetchPoolRewards]);
 
-  return result;
+  return useMemo(() => ({ ...result, refetch: fetchPoolRewards }), [result, fetchPoolRewards]);
 };
 
 export default usePoolRewards;
