@@ -66,7 +66,7 @@ export async function getPoolRewards(
     tokens: [],
   };
 
-  const [poolPda] = await PublicKey.findProgramAddress(
+  const [poolPda] = PublicKey.findProgramAddressSync(
     [Buffer.from(pad(poolId, 16)), Buffer.from("pool")],
     new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!)
   );
@@ -84,7 +84,7 @@ export async function getPoolRewards(
   );
   const validPayrollIndex = payrollIndex ? payrollIndex : new BN(currentPayrollIndex);
 
-  const [payrollPda] = await PublicKey.findProgramAddress(
+  const [payrollPda] = PublicKey.findProgramAddressSync(
     [Buffer.from("payroll"), Buffer.from(validPayrollIndex.toString()), poolPda.toBuffer()],
     programId
   );
@@ -147,13 +147,14 @@ export async function getStakedNftForPool(
   console.log("getStakedNftForPool", pda.toBase58());
   const programId = new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!);
 
-  return await getStakingsForAddress(connection, userPublicKey, programId);
+  return await getStakingsForAddress(connection, userPublicKey, programId, pda);
 }
 
 export async function getStakingsForAddress(
   connection: Connection,
   address: PublicKey,
-  programId: PublicKey = PROGRAM_ID
+  programId: PublicKey = PROGRAM_ID,
+  poolPda: PublicKey
 ) {
   const assets = await connection.getProgramAccounts(programId, {
     filters: [
@@ -161,6 +162,12 @@ export async function getStakingsForAddress(
         memcmp: {
           offset: 137,
           bytes: address.toBase58(),
+        },
+      },
+      {
+        memcmp: {
+          offset: 1 + 8 + 8 + 8 + 8 + 8,
+          bytes: poolPda.toBase58(),
         },
       },
       {

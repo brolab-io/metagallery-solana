@@ -17,10 +17,10 @@ const menus = [
     title: "Home",
     href: "/",
   },
-  // {
-  //   title: "Marketplace",
-  //   href: "/marketplace",
-  // },
+  {
+    title: "Marketplace",
+    href: "/marketplace",
+  },
   {
     title: "Collections",
     href: "/collections",

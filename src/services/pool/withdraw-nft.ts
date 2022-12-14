@@ -39,13 +39,13 @@ export async function withdraw(
     parsedPoolData.rewardPeriod.toNumber(),
     parsedPoolData.startAt.toNumber()
   );
-  const [payrollPda] = await PublicKey.findProgramAddress(
+  const [payrollPda] = PublicKey.findProgramAddressSync(
     [Buffer.from("payroll"), Buffer.from(payrollIndex.toString()), poolAccount.toBuffer()],
     programId
   );
 
   const depositTokenMintAddress = new PublicKey(parsedData.stakingTokenMintAddress);
-  const [stakingTokenDataPda] = await PublicKey.findProgramAddress(
+  const [stakingTokenDataPda] = PublicKey.findProgramAddressSync(
     [Buffer.from("tokendata"), depositTokenMintAddress.toBuffer()],
     new PublicKey(NEXT_PUBLIC_SC_ADDRESS)
   );

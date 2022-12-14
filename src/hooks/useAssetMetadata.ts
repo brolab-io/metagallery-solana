@@ -7,7 +7,7 @@ type Result = {
   error: unknown;
 };
 
-const useAssetMetadata = (uri: string) => {
+const useAssetMetadata = (uri?: string) => {
   const [result, setResult] = useState<Result>({
     isLoading: false,
     data: null,

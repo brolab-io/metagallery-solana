@@ -34,7 +34,7 @@ export async function withdrawReward(
   const NEXT_PUBLIC_STAKING_POOL = process.env.NEXT_PUBLIC_STAKING_POOL!;
   const programId = new PublicKey(NEXT_PUBLIC_SC_ADDRESS);
   const newPoolPda = poolPda || new PublicKey(NEXT_PUBLIC_STAKING_POOL);
-  const [stakingPda] = await PublicKey.findProgramAddress(
+  const [stakingPda] = PublicKey.findProgramAddressSync(
     [
       Buffer.from("staking"),
       stakingTokenMintAddress.toBuffer(),
@@ -68,12 +68,12 @@ export async function withdrawReward(
   // payroll: 392
   // token: 988Hp2QxjbcZu3vgy78CRsNhxnS46YG4nubbYeePgoxa
 
-  const [payrollPda] = await PublicKey.findProgramAddress(
+  const [payrollPda] = PublicKey.findProgramAddressSync(
     [Buffer.from("payroll"), Buffer.from(newPayrollIndex.toString()), newPoolPda.toBuffer()],
     programId
   );
 
-  const [payrollTokenPda] = await PublicKey.findProgramAddress(
+  const [payrollTokenPda] = PublicKey.findProgramAddressSync(
     [
       Buffer.from("payrolltoken"),
       Buffer.from(newPayrollIndex.toString()),
@@ -83,7 +83,7 @@ export async function withdrawReward(
     programId
   );
 
-  const [stakingPayrollPda] = await PublicKey.findProgramAddress(
+  const [stakingPayrollPda] = PublicKey.findProgramAddressSync(
     [
       Buffer.from("stakingpayroll"),
       Buffer.from(newPayrollIndex.toString()),

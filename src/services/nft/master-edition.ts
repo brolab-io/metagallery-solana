@@ -58,12 +58,12 @@ export async function mintMasterEdition({
   });
   // const metadataPDA = await Metadata.getPDA(connection, mint.publicKey);
   const programPubkey = new PublicKey(PROGRAM_ADDRESS);
-  const [metadataPDA] = await PublicKey.findProgramAddress(
+  const [metadataPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from("metadata"), programPubkey.toBuffer(), mint.publicKey.toBuffer()],
     programPubkey
   );
   // const editionPDA = await MasterEdition.getPDA(mint.publicKey);
-  const [editionPDA] = await PublicKey.findProgramAddress(
+  const [editionPDA] = PublicKey.findProgramAddressSync(
     [
       Buffer.from("metadata"),
       programPubkey.toBuffer(),

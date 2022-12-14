@@ -29,9 +29,9 @@ export async function createStakingPool(
 
 export async function getStakingPoolsFromCollection(
   connection: Connection,
-  programId: PublicKey = new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!),
-  collection?: PublicKey
+  collection: PublicKey | null
 ) {
+  const programId: PublicKey = new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!);
   const filters: GetProgramAccountsFilter[] = [
     {
       memcmp: {
@@ -49,6 +49,7 @@ export async function getStakingPoolsFromCollection(
       },
     });
   }
+
   const rawPools = await connection.getProgramAccounts(programId, {
     filters,
   });

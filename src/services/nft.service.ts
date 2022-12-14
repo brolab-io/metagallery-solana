@@ -35,13 +35,14 @@ export const getNftMetadataFromUri = async (uri: string): Promise<NftMetadata> =
 
 export async function getMetaData(connection: Connection, mintAddress: string) {
   const mintPubKey = new PublicKey(mintAddress);
-  const [originalEdition] = await PublicKey.findProgramAddress(
+  const [originalEdition] = PublicKey.findProgramAddressSync(
     [Buffer.from("metadata", "utf-8"), PROGRAM_ID.toBuffer(), mintPubKey.toBuffer()],
     PROGRAM_ID
   );
   const originalEditionAccount = await connection.getAccountInfo(originalEdition);
   return Metadata.fromAccountInfo(originalEditionAccount as any);
 }
+
 export async function getMultiMetaData(connection: Connection, mintAddresses: string[]) {
   const mintPubKeys = mintAddresses.map((m) => {
     const [originalEdition] = PublicKey.findProgramAddressSync(
@@ -62,6 +63,7 @@ export async function getMultiTokenData(connection: Connection, mintAddresses: s
     return originalEdition;
   });
   const originalEditionAccounts = await connection.getMultipleAccountsInfo(mintPubKeys);
+
   return originalEditionAccounts.map((d) => {
     try {
       return TokenData.deserializeToReadable(d?.data as any);
@@ -124,12 +126,12 @@ export async function checkCollection(
   collectionAddress: string
 ): Promise<boolean> {
   const collectionPubKey = new PublicKey(collectionAddress);
-  // const [originalEdition] = (await PublicKey.findProgramAddress([
+  // const [originalEdition] = (PublicKey.findProgramAddressSync([
   //   Buffer.from('metadata', 'utf-8'),
   //   PROGRAM_ID.toBuffer(),
   //   collectionPubKey.toBuffer(),
   // ], PROGRAM_ID));
-  const [editionPDA] = await PublicKey.findProgramAddress(
+  const [editionPDA] = PublicKey.findProgramAddressSync(
     [
       Buffer.from("metadata"),
       PROGRAM_ID.toBuffer(),

@@ -38,7 +38,7 @@ export async function updateReward(
     payrollIndex: payrollIndex?.toNumber(),
   });
   const programId = new PublicKey(NEXT_PUBLIC_SC_ADDRESS);
-  // const [poolPda] = await PublicKey.findProgramAddress([
+  // const [poolPda] = PublicKey.findProgramAddressSync([
   //   Buffer.from('pool'),
   //   payer.publicKey.toBuffer()
   // ], PROGRAM_ID);
@@ -53,7 +53,7 @@ export async function updateReward(
 
   const validPayrollIndex = payrollIndex ? payrollIndex : new BN(currentPayrollIndex);
   console.log(validPayrollIndex.toNumber());
-  const [payrollPda] = await PublicKey.findProgramAddress(
+  const [payrollPda] = PublicKey.findProgramAddressSync(
     [Buffer.from("payroll"), Buffer.from(validPayrollIndex.toString()), poolPda.toBuffer()],
     programId
   );
@@ -64,7 +64,7 @@ export async function updateReward(
     numberOfRewardTokens = parsedPayrollData.numberOfRewardTokens.add(new BN(1));
   }
 
-  const [payrollTokenPda] = await PublicKey.findProgramAddress(
+  const [payrollTokenPda] = PublicKey.findProgramAddressSync(
     [
       Buffer.from("payrolltoken"),
       Buffer.from(validPayrollIndex.toString()),
@@ -73,7 +73,7 @@ export async function updateReward(
     ],
     programId
   );
-  const [payrollIndexPda] = await PublicKey.findProgramAddress(
+  const [payrollIndexPda] = PublicKey.findProgramAddressSync(
     [
       Buffer.from("payrollindex"),
       Buffer.from(numberOfRewardTokens.toString()),

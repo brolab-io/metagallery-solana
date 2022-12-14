@@ -1,12 +1,15 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import ListPool from "../../components/Pool/ListPool";
 import Container from "../../components/__UI/Container";
 import Loading from "../../components/__UI/Loading";
 import usePools from "../../hooks/usePools";
 
 const PoolsPage = () => {
-  const { data, isLoading } = usePools();
+  const params = useSearchParams();
+  // console.log('params.get("collection")', params.get("collection"));
+  const { data, isLoading } = usePools("NyXgPoqcioPJAmSkAvwLXuAvcfwsKbn2d1BKRroWCpJ");
 
   if (isLoading) {
     return <Loading label="Loading pools..." />;
