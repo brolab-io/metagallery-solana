@@ -70,14 +70,14 @@ const Navbar = () => {
     <div className="h-[108px] fixed inset-x-0 top-0 flex items-center bg-[#141A31] z-40">
       <Container xxxl className="relative flex items-center justify-between w-full">
         <Link href="/">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-1 md:space-x-2 lg:space-x-3">
             <Logo />
-            <div className="text-3xl font-bold leading-7 tracking-normal text-white uppercase">
+            <div className="text-2xl font-bold leading-7 tracking-normal text-white uppercase lg:text-3xl">
               MetaGallery
             </div>
           </div>
         </Link>
-        <div className="absolute inset-y-0 flex items-center space-x-8 font-bold leading-6 text-white uppercase -translate-x-1/2 left-1/2">
+        <div className="absolute inset-y-0 flex items-center space-x-3 font-bold leading-6 text-white uppercase -translate-x-1/2 md:space-x-4 lg:space-x-5 xl:space-x-6 2xl:space-x-8 left-1/2">
           {menus.map((menu, index) => {
             const isActive = checkActive(menu.href, pathname);
             return (
@@ -85,7 +85,7 @@ const Navbar = () => {
                 <span
                   className={clsx(
                     isActive && "text-primary",
-                    "font-bold text-[16px] py-2 hover:text-primary transition-colors"
+                    "font-bold text-[14px] lg:text-[16px] py-2 hover:text-primary transition-colors whitespace-nowrap"
                   )}
                 >
                   {menu.title}
@@ -93,7 +93,7 @@ const Navbar = () => {
               </Link>
             );
           })}
-          <Button xxs href="/collections" className="rounded-sm">
+          <Button xxs href="/collections" className="rounded-sm whitespace-nowrap">
             Create Collection
           </Button>
         </div>

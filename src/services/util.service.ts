@@ -18,6 +18,10 @@ export const buildTxnUrl = (txn: string) => {
   return `https://explorer.solana.com/tx/${txn}?cluster=${getCurrentCluster()}`;
 };
 
+export const buildSpaceURL = (collection: string) => {
+  return `/spaces/template-1?collection=${collection}`;
+};
+
 export function getCurrentPayrollIndex(currentAt: number, rewardPeriod: number, startAt: number) {
   return Math.floor((currentAt - startAt) / rewardPeriod) + 1;
 }

@@ -162,7 +162,7 @@ const PoolPage = ({ params: { poolId } }: Props) => {
           <div className="grid gap-5 py-10 md:grid-cols-2 lg:grid-cols-3">
             <BoxFrame className="py-[38px] px-[34px]">
               <div className="space-y-4 md:space-y-6 xl:space-y-8">
-                <div className="lg:text-[36px] md:text-[32px] sm:text-[28px] text-[24px] xl:text-[40px] font-bold text-white">
+                <div className="lg:text-[34px] md:text-[28px] sm:text-[26px] text-[24px] xl:text-[40px] font-bold text-white">
                   Total Staked (Power)
                 </div>
                 <div className="flex items-center justify-between">
@@ -174,7 +174,7 @@ const PoolPage = ({ params: { poolId } }: Props) => {
             </BoxFrame>
             <BoxFrame className="py-[38px] px-[34px]">
               <div className="space-y-4 md:space-y-6 xl:space-y-8">
-                <div className="lg:text-[36px] md:text-[32px] sm:text-[28px] text-[24px] xl:text-[40px] font-bold text-white">
+                <div className="lg:text-[34px] md:text-[28px] sm:text-[26px] text-[24px] xl:text-[40px] font-bold text-white">
                   My Staked (Power)
                 </div>
                 <div className="flex items-center justify-between">
@@ -186,7 +186,7 @@ const PoolPage = ({ params: { poolId } }: Props) => {
             </BoxFrame>
             <BoxFrame className="py-[38px] px-[34px]">
               <div className="space-y-4 lg:space-y-6">
-                <div className="lg:text-[36px] md:text-[32px] sm:text-[28px] text-[24px] xl:text-[40px] font-bold text-white">
+                <div className="lg:text-[34px] md:text-[28px] sm:text-[26px] text-[24px] xl:text-[40px] font-bold text-white">
                   Reward Reset in
                 </div>
                 <div className="relative flex items-center">
@@ -203,7 +203,7 @@ const PoolPage = ({ params: { poolId } }: Props) => {
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
               <H1>POOL REWARDS</H1>
-              <Button sm onClick={showAddRewardModal}>
+              <Button xs onClick={showAddRewardModal}>
                 UPDATE REWARD
               </Button>
             </div>
@@ -216,7 +216,7 @@ const PoolPage = ({ params: { poolId } }: Props) => {
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
               <H1>MY REWARDS</H1>
-              <Button sm onClick={showAddRewardModal}>
+              <Button xs onClick={showAddRewardModal}>
                 CLAIM
               </Button>
             </div>
@@ -231,7 +231,7 @@ const PoolPage = ({ params: { poolId } }: Props) => {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <H1>Staked NFTs</H1>
-            <Button sm onClick={showStakeNFTModal}>
+            <Button xs onClick={showStakeNFTModal}>
               STAKE
             </Button>
           </div>

@@ -11,6 +11,7 @@ import Container from "../../../components/__UI/Container";
 import H1 from "../../../components/__UI/H1";
 import Loading from "../../../components/__UI/Loading";
 import { getMetaData, getNftMetadataFromUri } from "../../../services/nft.service";
+import { buildSpaceURL } from "../../../services/util.service";
 import CollectionContext from "./context";
 
 type Props = {
@@ -65,10 +66,7 @@ const CollectionLayout = ({ children, params: { address } }: Props & { children:
           )}
         </div>
         <div className="absolute inset-0 flex items-center justify-center group-hover:bg-[#0C1226BF] transition-colors duration-500">
-          <Button
-            href={`https://solana.brolab.io/space/template-1?collection=${collection.mint.toBase58()}`}
-            target="_blank"
-          >
+          <Button href={buildSpaceURL(collection.mint.toBase58())} target="_blank">
             VIEW COLLECTION IN 3D MODE
           </Button>
         </div>

@@ -9,7 +9,7 @@ const H1: React.FC<PropsWithChildren<Props>> = ({ children, className }) => {
   return (
     <h1
       className={clsx(
-        "text-[24px] sm:text-[28px] md:text-[36px] lg:text-[48px] font-bold uppercase text-white",
+        "text-[24px] sm:text-[28px] md:text-[32px] lg:text-[40px] 2xl:text-[48px] font-bold uppercase text-white",
         className
       )}
     >

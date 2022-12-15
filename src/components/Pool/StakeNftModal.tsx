@@ -1,6 +1,6 @@
 import { Transition } from "@headlessui/react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useCallback, useState } from "react";
+import { ComponentProps, useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import useAssets from "../../hooks/useAssets";
 import { stakeNft, TokenMetdata } from "../../services/nft.service";
@@ -22,8 +22,8 @@ const StakeNftModal = ({ show, setShow, callback, collection, poolId }: Props) =
   const wallet = useWallet();
   const { connection } = useConnection();
 
-  const onNFTClick = useCallback(
-    async (item: TokenMetdata) => {
+  const onNFTClick: NonNullable<ComponentProps<typeof ListNFT>["onItemClicked"]> = useCallback(
+    async (item) => {
       // setShow(false);
       // callback?.();
       let toastId: ReturnType<typeof toast> | null = null;

@@ -49,7 +49,7 @@ const Button: React.FC<Props> = ({
           className,
           "border-primary border-2 text-white uppercase font-bold hover:-translate-y-0.5 transition-transform",
           outlined ? "border-primary" : "bg-primary",
-          xxs ? "px-3.5 py-1.5 text-sm" : xs ? "px-4 py-2" : sm ? "px-6 py-3" : "px-8 py-3",
+          xxs ? "px-2 py-1.5 text-sm" : xs ? "px-4 py-2" : sm ? "px-6 py-3" : "px-8 py-3",
           "disabled:brightness-75 disabled:cursor-not-allowed"
         )}
       >

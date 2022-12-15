@@ -2,6 +2,7 @@ import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import Image from "next/image";
 import Link from "next/link";
 import useAssetMetadata from "../../hooks/useAssetMetadata";
+import { buildSpaceURL } from "../../services/util.service";
 
 type Props = {
   item: Metadata;
@@ -14,9 +15,7 @@ const ListCollectionItem: React.FC<Props> = ({ item, isExplore }) => {
   return (
     <Link
       href={
-        isExplore
-          ? `https://solana.brolab.io/space/template-1?collection=${item.mint.toBase58()}`
-          : `/collections/${item.mint.toBase58()}`
+        isExplore ? buildSpaceURL(item.mint.toBase58()) : `/collections/${item.mint.toBase58()}`
       }
       target={isExplore ? "_blank" : "_self"}
     >
