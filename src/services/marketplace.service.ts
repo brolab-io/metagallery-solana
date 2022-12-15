@@ -5,10 +5,10 @@ import { IWalletProvider } from "./wallet.service";
 import { list } from "./mk/list";
 import { buy } from "./mk/buy";
 import { sendTransaction } from "./solana.service";
-import { getMultiMetaData, getMultiTokenData } from "./nft.service";
-import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
+import { getMultiMetaData, getMultiTokenData, TokenMetdata } from "./nft.service";
 import { SaleItem } from "./serde/states/sale-item";
-import { TReadableTokenData } from "./serde/states/token-data";
+import { PriceItem, TPriceItem } from "./serde/states/price-item";
+import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 
 export async function listNft(provider: IWalletProvider, data: any = {}, connection: Connection) {
   if (!provider || !provider.publicKey) {
@@ -44,6 +44,13 @@ export async function getListingItem(connection: Connection, tokenMintAddress: P
     new PublicKey(programId)
   );
 
+  const [pricePda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("priceitem"), Buffer.from("1"), salePda.toBuffer()],
+    new PublicKey(programId)
+  );
+  const priceAccount = await connection.getAccountInfo(pricePda);
+  const priceData = PriceItem.deserialize(priceAccount?.data as Buffer);
+
   const saleAccount = await connection.getAccountInfo(salePda);
   const saleData = SaleItem.deserializeToReadable(saleAccount?.data as Buffer);
   const [mintData] = await Promise.all([
@@ -53,12 +60,35 @@ export async function getListingItem(connection: Connection, tokenMintAddress: P
     getMultiTokenData(connection, [tokenMintAddress.toBase58()]),
   ]);
   return {
-    saleData,
-    mintData: {
-      ...mintData[0][0],
-      tokenData: tokenData[0],
-    },
+    ...mintData[0][0],
+    tokenData: tokenData[0],
+    sale: saleData,
+    price: priceData,
   };
+}
+
+export async function getMultiPriceData(connection: Connection, mintPubKeys: string[]) {
+  const programId = new PublicKey(process.env.NEXT_PUBLIC_MK_ADDRESS!);
+  const pricePubKeys = mintPubKeys.map((mintPubKey) => {
+    const [salePda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("saleitem"), new PublicKey(mintPubKey).toBuffer()],
+      new PublicKey(programId)
+    );
+    const [pricePda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("priceitem"), Buffer.from("1"), salePda.toBuffer()],
+      new PublicKey(programId)
+    );
+    return pricePda;
+  });
+  const originalEditionAccounts = await connection.getMultipleAccountsInfo(pricePubKeys);
+
+  return originalEditionAccounts.map((d) => {
+    try {
+      return PriceItem.deserialize(d?.data as any);
+    } catch (error) {
+      return null;
+    }
+  });
 }
 
 export async function getListingsForAddress(connection: Connection, address?: PublicKey) {
@@ -100,6 +130,7 @@ export async function getListingsForAddress(connection: Connection, address?: Pu
       }
     })
     .filter((data) => data);
+
   const chunks = mintPubkeys.reduce((result: any, m: any, index: number) => {
     const base = Math.floor(index / 100);
     result[base] = result[base] || [];
@@ -109,16 +140,14 @@ export async function getListingsForAddress(connection: Connection, address?: Pu
 
   const mintData = await Promise.all(chunks.map((m: any) => getMultiMetaData(connection, m)));
   const tokenData = await Promise.all(chunks.map((m: any) => getMultiTokenData(connection, m)));
-  console.log(chunks);
+  const priceData = await Promise.all(chunks.map((m: any) => getMultiPriceData(connection, m)));
   const flattenedMintDatas = mintData.flat();
   const flattenedTokenDatas = tokenData.flat();
+  const flattenedPriceDatas = priceData.flat();
   return saleData.map((s, i) => ({
+    ...(flattenedMintDatas[i][0] as Metadata),
+    tokenData: flattenedTokenDatas[i],
     sale: SaleItem.deserializeToReadable(s?.account.data as Buffer)!,
-    mintData: {
-      ...flattenedMintDatas[i][0],
-      tokenData: flattenedTokenDatas[i],
-    } as Metadata & {
-      tokenData: TReadableTokenData;
-    },
+    price: flattenedPriceDatas[i] as TPriceItem,
   }));
 }

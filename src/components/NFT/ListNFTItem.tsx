@@ -1,14 +1,18 @@
+import { BN } from "bn.js";
 import Image from "next/image";
 import Link from "next/link";
 import { PropsWithChildren } from "react";
 import useAssetMetadata from "../../hooks/useAssetMetadata";
+import { getListingsForAddress } from "../../services/marketplace.service";
 import { TokenMetdata } from "../../services/nft.service";
+
+type NFTData = TokenMetdata | Awaited<ReturnType<typeof getListingsForAddress>>[number];
 
 type Props = {
   isMarketplace?: boolean;
-  item: TokenMetdata;
-  onItemClicked?: (item: TokenMetdata) => void;
-  renderActions?: (item: TokenMetdata) => JSX.Element;
+  item: NFTData;
+  onItemClicked?: (item: NFTData) => void;
+  renderActions?: (item: NFTData) => JSX.Element;
 };
 
 const NFTItemWrapper: React.FC<PropsWithChildren<Props>> = ({
@@ -30,9 +34,7 @@ const NFTItemWrapper: React.FC<PropsWithChildren<Props>> = ({
   return (
     <Link
       href={
-        isMarketplace && "marketId" in item
-          ? `/marketplace/${item.mint.toString()}`
-          : `/nfts/${item.mint.toString()}`
+        isMarketplace ? `/marketplace/${item.mint.toString()}` : `/nfts/${item.mint.toString()}`
       }
     >
       <div className="bg-[#22B78F]/10 border-2 border-primary p-4 space-y-3 w-full">{children}</div>
@@ -73,13 +75,17 @@ const ListNFTItem: React.FC<Props> = ({ isMarketplace, item, onItemClicked, rend
             {item.tokenData?.power.toString() || 1}
           </span>
         </div>
+
+        {"price" in item && (
+          <div className="flex items-center justify-between">
+            <span className="text-[15px] text-[#6B7280] font-bold">Sale price</span>
+            <span className="text-white font-bold text-[20px]">
+              {item.price.price.div(new BN(10).pow(new BN(8))).toString()} BRO
+            </span>
+          </div>
+        )}
+
         {renderActions?.(item)}
-        {/* {"marketPrice" in item && (
-              <div className="flex items-center justify-between">
-                <span className="text-[15px] text-[#6B7280] font-bold">Sale price</span>
-                <span className="text-white font-bold text-[20px]">{nft.marketPrice} SOL</span>
-              </div>
-            )} */}
       </div>
     </NFTItemWrapper>
   );

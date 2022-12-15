@@ -35,8 +35,8 @@ export const uploadMetadataUsingMetaplex = async (
     .use(walletAdapterIdentity(wallet))
     .use(
       bundlrStorage({
-        address: "https://devnet.bundlr.network",
-        providerUrl: "https://api.devnet.solana.com",
+        address: process.env.NEXT_PUBLIC_BUNDLR_ENDPOINT!,
+        providerUrl: process.env.NEXT_PUBLIC_SOLANA_ENDPOINT!,
         timeout: 60000,
       })
     );

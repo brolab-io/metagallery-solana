@@ -1,16 +1,19 @@
 "use client";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useMemo } from "react";
+import { getListingsForAddress } from "../../services/marketplace.service";
 import { TokenMetdata } from "../../services/nft.service";
 import Loading from "../__UI/Loading";
 import ListNFTItem from "./ListNFTItem";
 
+type NFTData = TokenMetdata | Awaited<ReturnType<typeof getListingsForAddress>>[number];
+
 type Props = {
   isMarketplace?: boolean;
-  nfts: TokenMetdata[];
+  nfts: NFTData[];
   isLoading?: boolean;
-  onItemClicked?: (item: TokenMetdata) => void;
-  renderActions?: (item: TokenMetdata) => JSX.Element;
+  onItemClicked?: (item: NFTData) => void;
+  renderActions?: (item: NFTData) => JSX.Element;
 };
 
 const ListNFT: React.FC<Props> = ({

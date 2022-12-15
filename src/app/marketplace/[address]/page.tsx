@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import BuyOrDelistNFTButton from "../../../components/Marketplace/BuyOrDelistNFTButton";
 import BoxFrame from "../../../components/__UI/BoxFrame";
 import Container from "../../../components/__UI/Container";
 import H1 from "../../../components/__UI/H1";
@@ -14,8 +15,8 @@ type Props = {
 };
 const MarketplaceItemPage = ({ params: { address } }: Props) => {
   const { isLoading, data, error } = useMarketplaceItem(address);
-  const nft = data?.mintData;
-  const { data: metadata } = useAssetMetadata(data?.mintData.data.uri);
+  const nft = data;
+  const { data: metadata } = useAssetMetadata(data?.data.uri);
   const SC_ADDRESS = process.env.NEXT_PUBLIC_SC_ADDRESS!;
 
   if (!nft) {
@@ -47,6 +48,7 @@ const MarketplaceItemPage = ({ params: { address } }: Props) => {
                 {nft.tokenData?.power.toNumber() || 1}
               </span>
             </div>
+            <BuyOrDelistNFTButton className="w-full mt-10" nft={nft} />
           </div>
         </div>
       </BoxFrame>

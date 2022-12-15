@@ -1,23 +1,21 @@
-import BN from 'bn.js';
-import * as borsh from 'borsh';
+import BN from "bn.js";
+import * as borsh from "borsh";
 
 export interface TPriceItem {
-  accountType: Number,
-  price: BN,
-  salePda: Uint8Array,
-  tradeToken: Uint8Array,
+  accountType: Number;
+  price: BN;
+  salePda: Uint8Array;
+  tradeToken: Uint8Array;
 }
 
 export class PriceItem implements TPriceItem {
-
   accountType;
-  
+
   price;
-  
+
   salePda;
-  
+
   tradeToken;
-  
 
   constructor(fields: TPriceItem) {
     this.accountType = fields.accountType;
@@ -36,14 +34,18 @@ export class PriceItem implements TPriceItem {
 }
 
 export const fields = [
-  ['accountType', 'u8'],
-  ['tradeToken', [32]],
-  ['price', 'u64'],
-  ['salePda', [32]],
+  ["accountType", "u8"],
+  ["tradeToken", [32]],
+  ["price", "u64"],
+  ["salePda", [32]],
 ];
 
-export const PriceItemDataSchema = new Map([[PriceItem, {
-  kind: 'struct',
-  fields,
-}],
+export const PriceItemDataSchema = new Map([
+  [
+    PriceItem,
+    {
+      kind: "struct",
+      fields,
+    },
+  ],
 ]);

@@ -72,6 +72,7 @@ export async function getMultiTokenData(connection: Connection, mintAddresses: s
     }
   });
 }
+
 export async function getAssetsFromAddressV2(
   connection: Connection,
   address: PublicKey,

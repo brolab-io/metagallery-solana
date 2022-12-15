@@ -3,9 +3,12 @@ import clsx from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Container from "./Container";
 import Logo from "./Logo";
+import { useConnection } from "@solana/wallet-adapter-react";
+import { toast } from "react-toastify";
+import { getCurrentCluster } from "../../services/util.service";
 
 const SolanaConnectButton = dynamic(() => import("./SolanaConnectButton"), {
   ssr: false,
@@ -45,8 +48,17 @@ const Navbar = () => {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
 
+  const toasted = useRef(false);
+
   useEffect(() => {
-    setMounted(true);
+    if (!toasted.current) {
+      setMounted(true);
+      toasted.current = true;
+      toast.info(`Connected to ${getCurrentCluster()} cluster!`, {
+        position: "top-center",
+        autoClose: 3000,
+      });
+    }
   }, []);
 
   return (

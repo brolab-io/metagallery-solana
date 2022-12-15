@@ -153,8 +153,9 @@ export async function mintMasterEdition({
     .add(createMetadataIns)
     .add(createAta)
     .add(mintTo)
-    .add(masterEditionIns)
-    .add(updateTokenIx);
+    .add(masterEditionIns);
+  // .add(updateTokenIx);
+  // https://arweave.net/Hc-5VnE3dRwUZPAEEZl5GcFxmGr5hqnyxVjWFSWW11Q
   // verify collection
   if (collection) {
     const verifyIns = await verifySizeCollection({
