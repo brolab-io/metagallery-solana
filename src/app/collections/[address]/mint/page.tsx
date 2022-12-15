@@ -10,7 +10,7 @@ import Button from "../../../../components/__UI/Button";
 import Container from "../../../../components/__UI/Container";
 import CreatorShare from "../../../../components/__UI/CreatorShare";
 import LableInput from "../../../../components/__UI/LableInput";
-import { uploadMetadata, uploadMetadataUsingMetaplex } from "../../../../services/ipfs/upload";
+import { uploadMetadataUsingMetaplex } from "../../../../services/ipfs/upload";
 import { mint } from "../../../../services/nft.service";
 import { buildMetadata } from "../../../../services/util.service";
 import { useCollectionContext } from "../context";
@@ -28,7 +28,7 @@ type FormValues = {
   sellerFeeBasisPoints: number;
   creators: CreatorShare[];
   isMasterEdition: boolean;
-  maxSupply: number;
+  maxSupply: number | "None";
   tokenPower: number;
   files: FileList;
 };
@@ -53,7 +53,7 @@ const MintNftPage = ({ params: { address } }: Props) => {
       sellerFeeBasisPoints: 0,
       creators: [],
       isMasterEdition: true,
-      maxSupply: 1,
+      maxSupply: 0,
       tokenPower: 1,
       collection: address,
     },
@@ -117,6 +117,9 @@ const MintNftPage = ({ params: { address } }: Props) => {
             : "Minting NFT, please wait...",
         });
 
+        if (data.maxSupply < 0) {
+          data.maxSupply = "None";
+        }
         const txid = await mint("masteredition", provider, [data], connection);
 
         toast.update(toastId, {
@@ -224,7 +227,7 @@ const MintNftPage = ({ params: { address } }: Props) => {
               message: "Seller Fee Basis Points must be greater than 0",
             },
             max: {
-              value: 100,
+              value: 10000,
               message: "Seller Fee Basis Points must be less than 100",
             },
             valueAsNumber: true,
@@ -233,12 +236,12 @@ const MintNftPage = ({ params: { address } }: Props) => {
         />
 
         <LableInput
-          label="Max Supply *"
+          label="Max Supply (-1 for disabled, 0 for unlimited, otherwise enter positive number)"
           type="number"
           placeholder="Input total supply"
           {...register("maxSupply", {
             min: {
-              value: 0,
+              value: -1,
               message: "Total supply must be equal or greater than 0",
             },
             max: {
@@ -255,7 +258,7 @@ const MintNftPage = ({ params: { address } }: Props) => {
           placeholder="Input token power"
           {...register("tokenPower", {
             min: {
-              value: 0,
+              value: -1,
               message: "Token power must be equal or greater than 0",
             },
             max: {

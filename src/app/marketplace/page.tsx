@@ -1,14 +1,21 @@
 "use client";
-import { useMemo } from "react";
 import ListNFT from "../../components/NFT/ListNFT";
+import BreadCrumb from "../../components/__UI/Breadcrumb";
 import Container from "../../components/__UI/Container";
 import useMarketplaceItems from "../../hooks/useMarketplaceItems";
+
+const breadCrumbItems = [
+  {
+    label: "Marketplace",
+  },
+];
 
 const MarketplacePage = () => {
   const { data, isLoading, error } = useMarketplaceItems();
 
   return (
-    <Container>
+    <Container className="py-6 sm:py-8 md:py-12 lg:py-16 xl:py-20">
+      <BreadCrumb items={breadCrumbItems} />
       <ListNFT nfts={data || []} isMarketplace isLoading={isLoading} />
     </Container>
   );

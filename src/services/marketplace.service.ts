@@ -4,11 +4,13 @@ import { Connection, GetProgramAccountsFilter, PublicKey } from "@solana/web3.js
 import { IWalletProvider } from "./wallet.service";
 import { list } from "./mk/list";
 import { buy } from "./mk/buy";
+
 import { sendTransaction } from "./solana.service";
 import { getMultiMetaData, getMultiTokenData, TokenMetdata } from "./nft.service";
 import { SaleItem } from "./serde/states/sale-item";
 import { PriceItem, TPriceItem } from "./serde/states/price-item";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
+import { delist } from "./mk/delist";
 
 export async function listNft(provider: IWalletProvider, data: any = {}, connection: Connection) {
   if (!provider || !provider.publicKey) {
@@ -28,10 +30,37 @@ export async function buyNft(provider: IWalletProvider, data: any = {}, connecti
   if (!provider || !provider.publicKey) {
     throw new Error(`you must firstly connect to a wallet!`);
   }
+
+  const programId = new PublicKey(process.env.NEXT_PUBLIC_MK_ADDRESS!);
+
+  const [salePda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("saleitem"), data.tokenMintAddress.toBuffer()],
+    new PublicKey(programId)
+  );
+
   const pk = provider.publicKey;
   const serializedTx = await buy(connection, pk, {
-    salePda: new PublicKey(data.pda),
+    salePda,
     priceIndex: data.priceIndex,
+  });
+
+  return sendTransaction(connection, provider, [serializedTx]);
+}
+
+export async function delistNft(provider: IWalletProvider, data: any = {}, connection: Connection) {
+  if (!provider || !provider.publicKey) {
+    throw new Error(`you must firstly connect to a wallet!`);
+  }
+
+  const programId = new PublicKey(process.env.NEXT_PUBLIC_MK_ADDRESS!);
+  const [salePda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("saleitem"), data.tokenMintAddress.toBuffer()],
+    new PublicKey(programId)
+  );
+
+  const pk = provider.publicKey;
+  const serializedTx = await delist(connection, pk, {
+    salePda,
   });
   return sendTransaction(connection, provider, [serializedTx]);
 }

@@ -7,6 +7,7 @@ import { sendTransaction } from "./solana.service";
 import base58 from "bs58";
 import { pad } from "./util.service";
 import { Pool } from "./serde/states/pool";
+import { getMultiMetaData } from "./nft.service";
 
 export async function createStakingPool(
   provider: IWalletProvider,
@@ -53,8 +54,19 @@ export async function getStakingPoolsFromCollection(
   const rawPools = await connection.getProgramAccounts(programId, {
     filters,
   });
-  return rawPools.map((pool) => {
-    return pool.account.data;
+
+  const poolData = rawPools.map((pool) => {
+    return Pool.deserializeToReadable(pool.account.data);
+  });
+
+  const minPubkeys = poolData.map((pool) => pool.collection);
+  const minData = await getMultiMetaData(connection, minPubkeys);
+
+  return poolData.map((pool, index) => {
+    return {
+      ...pool,
+      collectionData: minData[index][0],
+    };
   });
 }
 

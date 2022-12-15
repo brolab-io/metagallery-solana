@@ -10,6 +10,8 @@ import { sendTransaction } from "./solana.service";
 import { stakeAsset } from "./nft/stake";
 import { TokenData } from "./serde/states/token-data";
 import { pad } from "./util.service";
+import base58 from "bs58";
+import { CollectionData } from "./serde/states/collection-data";
 
 type NftMetadata = {
   name: string;
@@ -195,4 +197,48 @@ export async function stakeNft(provider: IWalletProvider, data: any, connection:
   data.poolPda = pda;
   const serializedTx = await stakeAsset(connection, provider.publicKey, data);
   return sendTransaction(connection, provider, [serializedTx]);
+}
+
+export async function listOurCollections(connection: Connection) {
+  const programId = new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!);
+  const pdas = await connection.getProgramAccounts(programId, {
+    filters: [
+      {
+        memcmp: {
+          offset: 0,
+          bytes: base58.encode(Buffer.from([107])),
+        },
+      },
+    ],
+  });
+  const data = await connection.getMultipleAccountsInfo(pdas.map((p) => new PublicKey(p.pubkey)));
+  const parsedPda = data.map((d) => {
+    const parsed = CollectionData.deserializeToReadable(d?.data as any);
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("metadata", "utf-8"),
+        PROGRAM_ID.toBuffer(),
+        new PublicKey(parsed.collectionMintAddress).toBuffer(),
+      ],
+      PROGRAM_ID
+    )[0];
+  });
+  const mintData = await connection.getMultipleAccountsInfo(parsedPda);
+  const parsedMint = mintData.map((d) => {
+    return Metadata.fromAccountInfo(d as any)[0];
+  });
+  return parsedMint;
+}
+
+export async function listOurNftsFromAddress(connection: Connection, address: PublicKey) {
+  const nfts = await getAssetsFromAddress(connection, address);
+  const tokenPdas = nfts.map((nft) => {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from("tokendata"), (nft as any).mint.toBuffer()],
+      new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!)
+    )[0];
+  });
+  const data = await connection.getMultipleAccountsInfo(tokenPdas);
+  const filteredNfts = nfts.filter((nft, index) => !!data[index]?.data);
+  return filteredNfts;
 }

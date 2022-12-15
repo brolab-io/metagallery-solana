@@ -17,7 +17,7 @@ function useAssets(type: "nft" | "collection", collectionAddress?: string) {
   const { connection } = useConnection();
   const wallet = useWallet();
   const [result, setResult] = useState<Result>({
-    isLoading: false,
+    isLoading: true,
     data: [],
     error: null,
   });

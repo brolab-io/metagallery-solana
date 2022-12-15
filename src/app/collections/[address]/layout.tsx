@@ -66,7 +66,7 @@ const CollectionLayout = ({ children, params: { address } }: Props & { children:
         </div>
         <div className="absolute inset-0 flex items-center justify-center group-hover:bg-[#0C1226BF] transition-colors duration-500">
           <Button
-            href={`https://app.brolab.io/room/gallery-2?network=${process.env.NEXT_PUBLIC_NETWORK}&collection=${collection.mint}`}
+            href={`https://solana.brolab.io/space/template-1?collection=${collection.mint.toBase58()}`}
             target="_blank"
           >
             VIEW COLLECTION IN 3D MODE

@@ -1,7 +1,6 @@
 "use client";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { BN } from "bn.js";
-import clsx from "clsx";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import AddRewardModal from "../../../components/Pool/AddRewardModal";
@@ -33,7 +32,11 @@ const PoolPage = ({ params: { poolId } }: Props) => {
     isLoading: isLoadingStakedNFTs,
     refetch: refetchStakedNFTs,
   } = useStakedNFTs(poolId);
-  const { data: poolRewardData, isLoading: isFetchingPoolReward } = usePoolRewards(poolId);
+  const {
+    data: poolRewardData,
+    isLoading: isFetchingPoolReward,
+    refetch: refetchRewards,
+  } = usePoolRewards(poolId);
 
   const [isShowingStakeNFTModal, setIsShowingStakeNFTModal] = useState(false);
   const [isShowingAddRewardModal, setIsShowingAddRewardModal] = useState(false);
@@ -70,8 +73,9 @@ const PoolPage = ({ params: { poolId } }: Props) => {
     setTimeout(() => {
       refetchPool();
       refetchStakedNFTs();
+      refetchRewards();
     }, 1000);
-  }, [refetchPool, refetchStakedNFTs]);
+  }, [refetchPool, refetchStakedNFTs, refetchRewards]);
 
   const showStakeNFTModal = useCallback(() => {
     return setIsShowingStakeNFTModal(true);

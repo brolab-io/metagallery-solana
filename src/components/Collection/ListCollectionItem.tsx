@@ -5,13 +5,21 @@ import useAssetMetadata from "../../hooks/useAssetMetadata";
 
 type Props = {
   item: Metadata;
+  isExplore?: boolean;
 };
 
-const ListCollectionItem: React.FC<Props> = ({ item }) => {
+const ListCollectionItem: React.FC<Props> = ({ item, isExplore }) => {
   const { data: metadata } = useAssetMetadata(item.data.uri);
 
   return (
-    <Link href={`/collections/${item.mint.toString()}`}>
+    <Link
+      href={
+        isExplore
+          ? `https://solana.brolab.io/space/template-1?collection=${item.mint.toBase58()}`
+          : `/collections/${item.mint.toBase58()}`
+      }
+      target={isExplore ? "_blank" : "_self"}
+    >
       <div className="bg-[#22B78F]/10 border-2 border-primary">
         {metadata?.image ? (
           <Image

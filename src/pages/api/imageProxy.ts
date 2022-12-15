@@ -5,5 +5,7 @@ export default withImageProxy({
     /^https?:\/\/(.*).ipfs.w3s.link/,
     /^https?:\/\/arweave.net/,
     /^https?:\/\/(.*).arweave.net/,
+    /^https?:\/\/picsum.photos/,
+    /^https?:\/\/(.*).picsum.photos/,
   ],
 });

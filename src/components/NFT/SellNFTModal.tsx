@@ -1,9 +1,11 @@
 import { Transition } from "@headlessui/react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { listNft } from "../../services/marketplace.service";
+import { buildTxnUrl } from "../../services/util.service";
 import BoxFrame from "../__UI/BoxFrame";
 import Button from "../__UI/Button";
 import LableInput from "../__UI/LableInput";
@@ -31,6 +33,12 @@ const SellNFTModal = ({ show, setShow, callback, tokenMintAddress }: Props) => {
   const { connection } = useConnection();
   const wallet = useWallet();
   const [isListing, setIsListing] = useState(false);
+  const router = useRouter();
+
+  const navigateToNftItemPage = useCallback(() => {
+    router.push(`/marketplace/${tokenMintAddress}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tokenMintAddress]);
 
   const onSubmit = handleSubmit(async (values) => {
     setIsListing(true);
@@ -42,11 +50,16 @@ const SellNFTModal = ({ show, setShow, callback, tokenMintAddress }: Props) => {
     try {
       const tx = await listNft(wallet, values, connection);
       toast.update(toastId, {
-        render: "NFT listed successfully",
+        render: (
+          <a target="_blank" href={buildTxnUrl(tx)} rel="noreferrer">
+            NFT listed successfully, View on Solana Explorer
+          </a>
+        ),
         type: "success",
         autoClose: 3000,
         isLoading: false,
       });
+      navigateToNftItemPage();
     } catch (error) {
       console.warn(error);
       toast.update(toastId, {

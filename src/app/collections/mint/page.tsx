@@ -11,8 +11,9 @@ import { checkCollection, mint } from "../../../services/nft.service";
 import { toast } from "react-toastify";
 import BoxFrame from "../../../components/__UI/BoxFrame";
 import { uploadMetadata, uploadMetadataUsingMetaplex } from "../../../services/ipfs/upload";
-import { buildMetadata } from "../../../services/util.service";
+import { buildMetadata, buildTxnUrl } from "../../../services/util.service";
 import CreatorShare from "../../../components/__UI/CreatorShare";
+import { useRouter } from "next/navigation";
 
 type CreatorShare = {
   creator: string;
@@ -76,6 +77,12 @@ const MintCollectionPage: React.FC = () => {
     return !creators || !creators.length || creators.reduce((s, i) => s + i.share, 0) === 100;
   };
 
+  const router = useRouter();
+
+  const navigateToCollectionsPage = useCallback(() => {
+    router.push("/collections");
+  }, [router]);
+
   const onSubmit = useCallback(
     async (data: FormValues) => {
       setIsLoading(true);
@@ -129,11 +136,7 @@ const MintCollectionPage: React.FC = () => {
         const txid = await mint("collection", provider, [data], connection);
         toast.update(toastId, {
           render: (
-            <a
-              target="_blank"
-              href={`https://explorer.solana.com/tx/${txid}?cluster=devnet`}
-              rel="noreferrer"
-            >
+            <a target="_blank" href={buildTxnUrl(txid)} rel="noreferrer">
               Collection minted successfully, View on Solana Explorer
             </a>
           ),
@@ -141,7 +144,7 @@ const MintCollectionPage: React.FC = () => {
           isLoading: false,
           autoClose: 3000,
         });
-        console.log(txid);
+        navigateToCollectionsPage();
       } catch (error) {
         console.warn(error);
         if (toastId) {
@@ -158,7 +161,7 @@ const MintCollectionPage: React.FC = () => {
         setIsLoading(false);
       }
     },
-    [connection, provider, creators]
+    [provider, connection, creators, navigateToCollectionsPage]
   );
 
   const { ref: fileRef, ...fields } = register("files");
@@ -235,7 +238,7 @@ const MintCollectionPage: React.FC = () => {
               message: "Seller Fee Basis Points must be greater than 0",
             },
             max: {
-              value: 100,
+              value: 10000,
               message: "Seller Fee Basis Points must be less than 100",
             },
             valueAsNumber: true,

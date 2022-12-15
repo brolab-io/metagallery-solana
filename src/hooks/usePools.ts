@@ -2,18 +2,17 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getStakingPoolsFromCollection } from "../services/pool.service";
-import { Pool, TReadablePool } from "../services/serde/states/pool";
 
 type Result = {
   isLoading: boolean;
-  data: TReadablePool[];
+  data: Awaited<ReturnType<typeof getStakingPoolsFromCollection>>;
   error: unknown;
 };
 
-const usePools = (collectionAddress?: string | null) => {
+const usePools = (collectionAddress?: string | null, requireCollection?: boolean) => {
   const { connection } = useConnection();
   const [result, setResult] = useState<Result>({
-    isLoading: false,
+    isLoading: true,
     data: [],
     error: null,
   });
@@ -21,6 +20,7 @@ const usePools = (collectionAddress?: string | null) => {
 
   const fetchPools = useCallback(async () => {
     if (isRequesting.current || !connection) return;
+    if (requireCollection && !collectionAddress) return;
     isRequesting.current = true;
     setResult({ isLoading: true, data: [], error: null });
     try {
@@ -28,18 +28,24 @@ const usePools = (collectionAddress?: string | null) => {
         connection,
         collectionAddress ? new PublicKey(collectionAddress) : null
       );
-      const readablePools = data.map(Pool.deserializeToReadable);
-      setResult({ isLoading: false, data: readablePools, error: null });
+      console.log(
+        `Fetched pools for collection ${collectionAddress}, requireCollection: ${requireCollection}`,
+        data
+      );
+
+      setResult({ isLoading: false, data, error: null });
     } catch (error) {
       console.warn(error);
       setResult({ isLoading: false, data: [], error });
     } finally {
       isRequesting.current = false;
     }
-  }, [collectionAddress, connection]);
+  }, [collectionAddress, connection, requireCollection]);
 
   useEffect(() => {
-    fetchPools();
+    if (typeof window !== undefined) {
+      fetchPools();
+    }
   }, [fetchPools]);
 
   return result;

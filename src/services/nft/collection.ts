@@ -13,6 +13,7 @@ import {
   PROGRAM_ADDRESS,
   CollectionDetails,
 } from "@metaplex-foundation/mpl-token-metadata";
+import updateCollectionData from "./transactions/create-collection-data";
 export async function mintCollection({
   connection,
   address,
@@ -134,13 +135,24 @@ export async function mintCollection({
   const transaction = new Transaction({
     feePayer: walletAddress,
   });
+
+  const updateCollectionIx = await updateCollectionData(
+    new PublicKey(process.env.NEXT_PUBLIC_SC_ADDRESS!),
+    {
+      account: walletAddress,
+      mint: mint.publicKey,
+    }
+  );
+
   transaction
     .add(createAccount)
     .add(createInitializeMint)
     .add(createMetadataIns)
     .add(createAta)
     .add(mintTo)
-    .add(masterEditionIns);
+    .add(masterEditionIns)
+    .add(updateCollectionIx);
+
   transaction.recentBlockhash = blockhash;
   // verify collection
   if (collection) {

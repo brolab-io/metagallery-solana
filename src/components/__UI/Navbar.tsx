@@ -9,6 +9,7 @@ import Logo from "./Logo";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { toast } from "react-toastify";
 import { getCurrentCluster } from "../../services/util.service";
+import Button from "./Button";
 
 const SolanaConnectButton = dynamic(() => import("./SolanaConnectButton"), {
   ssr: false,
@@ -21,16 +22,20 @@ const menus = [
     href: "/",
   },
   {
+    title: "Explore",
+    href: "/explore",
+  },
+  {
     title: "Marketplace",
     href: "/marketplace",
   },
   {
-    title: "Collections",
-    href: "/collections",
-  },
-  {
     title: "Pools",
     href: "/pools",
+  },
+  {
+    title: "My NFTs",
+    href: "/my-assets",
   },
 ];
 
@@ -88,6 +93,9 @@ const Navbar = () => {
               </Link>
             );
           })}
+          <Button xxs href="/collections" className="rounded-sm">
+            Create Collection
+          </Button>
         </div>
         {mounted && <SolanaConnectButton />}
       </Container>
