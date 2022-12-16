@@ -20,7 +20,13 @@ const ExplorerPage = () => {
         <div className="flex items-center justify-between mb-[61px]">
           <BreadCrumb items={breadCrumbItems} />
         </div>
-        <ListCollection needLogin={false} isExplore isLoading={isLoading} collections={data} />
+        <ListCollection
+          emptyText="There are no collections yet!"
+          needLogin={false}
+          isExplore
+          isLoading={isLoading}
+          collections={data}
+        />
       </Container>
     </>
   );

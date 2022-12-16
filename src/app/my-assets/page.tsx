@@ -19,7 +19,7 @@ const MyAssetsPage = () => {
         <div className="flex items-center justify-between mb-[61px]">
           <BreadCrumb items={breadCrumbItems} />
         </div>
-        <ListNFT isLoading={isLoading} nfts={data} />
+        <ListNFT emptyText="You don't have any NFTs yet!" isLoading={isLoading} nfts={data} />
       </Container>
     </>
   );

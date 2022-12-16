@@ -22,7 +22,11 @@ const CollectionsPage = () => {
           <BreadCrumb items={breadCrumbItems} />
           <Button href="/collections/mint">Create New</Button>
         </div>
-        <ListCollection isLoading={isLoading} collections={data} />
+        <ListCollection
+          emptyText="You don't have any collections yet. Create one to get started!"
+          isLoading={isLoading}
+          collections={data}
+        />
       </Container>
     </>
   );

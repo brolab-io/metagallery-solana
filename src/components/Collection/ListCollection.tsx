@@ -10,6 +10,7 @@ type Props = {
   isLoading?: boolean;
   isExplore?: boolean;
   needLogin?: boolean;
+  emptyText?: string;
 };
 
 const ListCollection: React.FC<Props> = ({
@@ -17,6 +18,7 @@ const ListCollection: React.FC<Props> = ({
   isLoading,
   isExplore,
   needLogin = true,
+  emptyText,
 }) => {
   const { publicKey } = useWallet();
 
@@ -25,10 +27,13 @@ const ListCollection: React.FC<Props> = ({
       return "Connect your wallet to see your collections!";
     }
     if (!collections.length) {
+      if (emptyText) {
+        return emptyText;
+      }
       return "You don't have any collections yet. Create one to get started!";
     }
     return "";
-  }, [collections.length, needLogin, publicKey]);
+  }, [collections.length, emptyText, needLogin, publicKey]);
 
   if (isLoading) {
     return <Loading label={`Loading ${needLogin ? "your " : ""}collections...`} />;

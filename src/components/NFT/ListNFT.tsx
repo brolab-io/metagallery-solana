@@ -12,6 +12,7 @@ type Props = {
   isMarketplace?: boolean;
   nfts: NFTData[];
   isLoading?: boolean;
+  emptyText?: string;
   onItemClicked?: (item: NFTData) => void;
   renderActions?: (item: NFTData) => JSX.Element;
 };
@@ -22,6 +23,7 @@ const ListNFT: React.FC<Props> = ({
   isLoading,
   onItemClicked,
   renderActions,
+  emptyText,
 }) => {
   const { publicKey } = useWallet();
 
@@ -30,10 +32,13 @@ const ListNFT: React.FC<Props> = ({
       return "Connect your wallet to see your collections!";
     }
     if (!nfts.length) {
-      return "You don't have any NFTs on this collection yet!";
+      if (emptyText) {
+        return emptyText;
+      }
+      return "You don't have any NFTs yet!";
     }
     return "";
-  }, [nfts.length, publicKey]);
+  }, [emptyText, nfts.length, publicKey]);
 
   if (!nfts.length && isLoading) {
     return <Loading label="Loading NFTs..." />;

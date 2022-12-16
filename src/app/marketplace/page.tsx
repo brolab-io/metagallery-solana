@@ -16,7 +16,12 @@ const MarketplacePage = () => {
   return (
     <Container className="py-6 sm:py-8 md:py-12 lg:py-16 xl:py-20">
       <BreadCrumb items={breadCrumbItems} />
-      <ListNFT nfts={data || []} isMarketplace isLoading={isLoading} />
+      <ListNFT
+        emptyText="There are no NFTs for sale yet!"
+        nfts={data || []}
+        isMarketplace
+        isLoading={isLoading}
+      />
     </Container>
   );
 };

@@ -11,7 +11,7 @@ const PoolsPage = () => {
 
   return (
     <Container className="py-6 sm:py-8 md:py-12 lg:py-16 xl:py-20">
-      <ListPool collection={collection || undefined} />
+      <ListPool collection={collection || undefined} emptyText="There are no pools yet!" />
     </Container>
   );
 };

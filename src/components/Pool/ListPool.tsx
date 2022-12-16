@@ -4,9 +4,10 @@ import ListPoolItem from "./ListPoolItem";
 
 type Props = {
   collection?: string;
+  emptyText?: string;
 };
 
-const ListPool = ({ collection }: Props) => {
+const ListPool = ({ collection, emptyText }: Props) => {
   const { data, isLoading } = usePools(collection);
 
   if (isLoading) {
@@ -16,7 +17,9 @@ const ListPool = ({ collection }: Props) => {
   if (!data.length) {
     return (
       <div className="py-40">
-        <p className="text-3xl text-center text-white">No pools found for this collection!</p>
+        <p className="text-3xl text-center text-white">
+          {emptyText || "No pools found for this collection!"}
+        </p>
       </div>
     );
   }
