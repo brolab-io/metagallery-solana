@@ -1,6 +1,6 @@
 
 ## What is Meta Gallery ?
-Meta Gallery help collection owner turn **magic eden collection** into **web-based metaverse** automatically without coding skill.  This metaverse will include many private for collection community like: DAO, ranking, NFT Staking, Streaming,... To enter the metaverse, NFT holder have to **paid royalty fee** (We using magic eden/coral cube API to track which royalty fee was paid or not).
+Meta Gallery help collection owner turn **magic eden collection** into **web-based metaverse** automatically without coding skill.  This metaverse will include many private for collection community like: DAO, ranking, NFT Staking, Streaming,... 
 
 - Demo is available at  [https://solana.brolab.io](https://solana.brolab.io/). 
 - Example 3D Gallery: https://solana.brolab.io/rooms/misty_mallory
