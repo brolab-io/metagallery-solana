@@ -93,9 +93,6 @@ const Navbar = () => {
               </Link>
             );
           })}
-          <Button xxs href="/collections" className="rounded-sm whitespace-nowrap">
-            Create Collection
-          </Button>
           <Button
             outlined
             xxs
@@ -104,6 +101,9 @@ const Navbar = () => {
             className="rounded-sm whitespace-nowrap"
           >
             Magiceden Tool
+          </Button>
+          <Button xxs href="/collections" className="rounded-sm whitespace-nowrap">
+            Create Collection
           </Button>
         </div>
         {mounted && <SolanaConnectButton />}
