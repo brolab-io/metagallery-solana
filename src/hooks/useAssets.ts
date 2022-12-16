@@ -1,19 +1,23 @@
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js";
 import { useCallback, useEffect, useState } from "react";
-import { getAssetsFromAddress } from "../services/nft.service";
+import { getAssetsFromAddress, TokenMetdata } from "../services/nft.service";
 
 type Result = {
   isLoading: boolean;
-  data: Metadata[];
+  data: TokenMetdata[];
   error: unknown;
 };
 
-const useAssets = (type: "collection" | "nft") => {
+function useAssets(type: "nft", collectionAddress: string): Result;
+function useAssets(type: "collection"): Result;
+
+function useAssets(type: "nft" | "collection", collectionAddress?: string) {
   const { connection } = useConnection();
   const wallet = useWallet();
   const [result, setResult] = useState<Result>({
-    isLoading: false,
+    isLoading: true,
     data: [],
     error: null,
   });
@@ -35,7 +39,15 @@ const useAssets = (type: "collection" | "nft") => {
       if (type === "nft") {
         setResult({
           isLoading: false,
-          data: data.filter((asset) => !asset.collectionDetails),
+          data: data.filter((asset) => {
+            if (!!asset.collectionDetails) {
+              return false;
+            }
+            if (!collectionAddress) {
+              return true;
+            }
+            return asset.collection?.key.toBase58() === collectionAddress;
+          }),
           error: null,
         });
       }
@@ -43,13 +55,13 @@ const useAssets = (type: "collection" | "nft") => {
       console.warn(error);
       setResult({ isLoading: false, data: [], error });
     }
-  }, [connection, type, wallet.publicKey]);
+  }, [collectionAddress, connection, type, wallet.publicKey]);
 
   useEffect(() => {
     fetchAssets();
   }, [fetchAssets]);
 
   return result;
-};
+}
 
 export default useAssets;

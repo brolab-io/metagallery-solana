@@ -8,8 +8,9 @@ import BoxFrame from "../../../../components/__UI/BoxFrame";
 import BreadCrumb from "../../../../components/__UI/Breadcrumb";
 import Button from "../../../../components/__UI/Button";
 import Container from "../../../../components/__UI/Container";
+import CreatorShare from "../../../../components/__UI/CreatorShare";
 import LableInput from "../../../../components/__UI/LableInput";
-import { uploadMetadata } from "../../../../services/ipfs/upload";
+import { uploadMetadataUsingMetaplex } from "../../../../services/ipfs/upload";
 import { mint } from "../../../../services/nft.service";
 import { buildMetadata } from "../../../../services/util.service";
 import { useCollectionContext } from "../context";
@@ -27,7 +28,7 @@ type FormValues = {
   sellerFeeBasisPoints: number;
   creators: CreatorShare[];
   isMasterEdition: boolean;
-  maxSupply: number;
+  maxSupply: number | "None";
   tokenPower: number;
   files: FileList;
 };
@@ -45,13 +46,14 @@ type Props = {
 };
 
 const MintNftPage = ({ params: { address } }: Props) => {
+  const [creators, setCreators] = useState<CreatorShare[]>([]);
   const { register, handleSubmit, watch } = useForm<FormValues>({
     defaultValues: {
       uri: "https://nftbigrich.s3.amazonaws.com/hoa/test_nft.json",
       sellerFeeBasisPoints: 0,
       creators: [],
       isMasterEdition: true,
-      maxSupply: 1,
+      maxSupply: 0,
       tokenPower: 1,
       collection: address,
     },
@@ -61,6 +63,10 @@ const MintNftPage = ({ params: { address } }: Props) => {
   const { connection } = useConnection();
   const { collection, metadata } = useCollectionContext();
   const provider = useWallet();
+
+  const checkCreatorShare = (creators: CreatorShare[]): boolean => {
+    return !creators || !creators.length || creators.reduce((s, i) => s + i.share, 0) === 100;
+  };
 
   const selectFile = useCallback(() => {
     fileInputRef.current?.click();
@@ -75,31 +81,45 @@ const MintNftPage = ({ params: { address } }: Props) => {
         return;
       }
 
+      if (!data.files.length) {
+        toast.error("Please select a file to upload");
+        return;
+      }
+
       let toastId: ReturnType<typeof toast.info> | null = null;
 
       try {
+        const checkShare: boolean = checkCreatorShare(creators);
+        if (!checkShare) {
+          throw new Error(`Creators, if set, must have 100 shares in total`);
+        }
+
         const collectionName = metadata?.name || collection?.data.name;
-        toastId = toast.info(
-          collectionName
-            ? `Minting ${collectionName} NFT, please wait...`
-            : "Minting NFT, please wait...",
-          {
-            autoClose: false,
-          }
-        );
+        toastId = toast.info("Uploading metadata, please wait...", {
+          autoClose: false,
+          isLoading: true,
+        });
 
         const _metadata = buildMetadata({
           name: data.name,
           symbol: data.symbol,
           fileType: data.files[0].type,
-          description: `NFT for BigRich`,
+          description: `NFT for ${collectionName}`,
           seller_fee_basis_points: data.sellerFeeBasisPoints,
           creators: data.creators,
         });
 
-        const url = await uploadMetadata(data.files[0], _metadata);
-        data.uri = url;
+        data.uri = await uploadMetadataUsingMetaplex(connection, provider, data.files, _metadata);
 
+        toast.update(toastId, {
+          render: collectionName
+            ? `Minting ${collectionName} NFT, please wait...`
+            : "Minting NFT, please wait...",
+        });
+
+        if (data.maxSupply < 0) {
+          data.maxSupply = "None";
+        }
         const txid = await mint("masteredition", provider, [data], connection);
 
         toast.update(toastId, {
@@ -133,7 +153,7 @@ const MintNftPage = ({ params: { address } }: Props) => {
         setIsLoading(false);
       }
     },
-    [collection?.data.name, connection, metadata?.name, provider]
+    [collection?.data.name, connection, creators, metadata?.name, provider]
   );
 
   const { ref: fileRef, ...fields } = register("files");
@@ -207,7 +227,7 @@ const MintNftPage = ({ params: { address } }: Props) => {
               message: "Seller Fee Basis Points must be greater than 0",
             },
             max: {
-              value: 100,
+              value: 10000,
               message: "Seller Fee Basis Points must be less than 100",
             },
             valueAsNumber: true,
@@ -216,12 +236,12 @@ const MintNftPage = ({ params: { address } }: Props) => {
         />
 
         <LableInput
-          label="Max Supply *"
+          label="Max Supply (-1 for disabled, 0 for unlimited, otherwise enter positive number)"
           type="number"
           placeholder="Input total supply"
           {...register("maxSupply", {
             min: {
-              value: 0,
+              value: -1,
               message: "Total supply must be equal or greater than 0",
             },
             max: {
@@ -238,7 +258,7 @@ const MintNftPage = ({ params: { address } }: Props) => {
           placeholder="Input token power"
           {...register("tokenPower", {
             min: {
-              value: 0,
+              value: -1,
               message: "Token power must be equal or greater than 0",
             },
             max: {
@@ -248,6 +268,9 @@ const MintNftPage = ({ params: { address } }: Props) => {
             valueAsNumber: true,
           })}
         />
+
+        <CreatorShare creators={creators} setCreators={setCreators} />
+
         <Button className="self-start" type="submit" disabled={isLoading}>
           <span className="ml-2">{isLoading ? "Creating..." : "Create New"}</span>
         </Button>

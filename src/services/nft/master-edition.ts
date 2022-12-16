@@ -58,12 +58,12 @@ export async function mintMasterEdition({
   });
   // const metadataPDA = await Metadata.getPDA(connection, mint.publicKey);
   const programPubkey = new PublicKey(PROGRAM_ADDRESS);
-  const [metadataPDA] = await PublicKey.findProgramAddress(
+  const [metadataPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from("metadata"), programPubkey.toBuffer(), mint.publicKey.toBuffer()],
     programPubkey
   );
   // const editionPDA = await MasterEdition.getPDA(mint.publicKey);
-  const [editionPDA] = await PublicKey.findProgramAddress(
+  const [editionPDA] = PublicKey.findProgramAddressSync(
     [
       Buffer.from("metadata"),
       programPubkey.toBuffer(),
@@ -155,8 +155,9 @@ export async function mintMasterEdition({
     .add(mintTo)
     .add(masterEditionIns)
     .add(updateTokenIx);
+  //arweave.net/Hc-5VnE3dRwUZPAEEZl5GcFxmGr5hqnyxVjWFSWW11Q
   // verify collection
-  if (collection) {
+  https: if (collection) {
     const verifyIns = await verifySizeCollection({
       collection,
       address,

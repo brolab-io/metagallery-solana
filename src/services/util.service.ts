@@ -1,6 +1,26 @@
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+
 export function pad(str: string, len: number) {
   return str.padEnd(len, String.fromCharCode(0x00));
 }
+
+export const getCurrentCluster = () => {
+  if (process.env.NEXT_PUBLIC_SOLANA_ENDPOINT!.includes("devnet")) {
+    return WalletAdapterNetwork.Devnet;
+  }
+  if (process.env.NEXT_PUBLIC_SOLANA_ENDPOINT!.includes("testnet")) {
+    return WalletAdapterNetwork.Testnet;
+  }
+  return WalletAdapterNetwork.Mainnet;
+};
+
+export const buildTxnUrl = (txn: string) => {
+  return `https://explorer.solana.com/tx/${txn}?cluster=${getCurrentCluster()}`;
+};
+
+export const buildSpaceURL = (collection: string) => {
+  return `/spaces/template-1?collection=${collection}`;
+};
 
 export function getCurrentPayrollIndex(currentAt: number, rewardPeriod: number, startAt: number) {
   return Math.floor((currentAt - startAt) / rewardPeriod) + 1;
@@ -54,7 +74,7 @@ export function buildMetadata({
           type: fileType,
         },
       ],
-      category: "video",
+      category: "image",
       creators: [],
     },
   };

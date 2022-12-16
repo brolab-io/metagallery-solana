@@ -25,7 +25,7 @@ export async function stakeAsset(
     poolPda?: PublicKey;
   }
 ) {
-  const { NEXT_PUBLIC_SC_ADDRESS = "" } = process.env;
+  const NEXT_PUBLIC_SC_ADDRESS = process.env.NEXT_PUBLIC_SC_ADDRESS!;
   console.log(poolPda.toBase58());
   const now = Math.floor(Date.now() / 1000);
   const poolAccountInfo = await connection.getAccountInfo(poolPda);
@@ -36,20 +36,20 @@ export async function stakeAsset(
       parsedPoolData.rewardPeriod.toNumber(),
       parsedPoolData.startAt.toNumber()
     ) + 1;
-  const [payrollPda] = await PublicKey.findProgramAddress(
+  const [payrollPda] = PublicKey.findProgramAddressSync(
     [Buffer.from("payroll"), Buffer.from(nextPayrollIndex.toString()), poolPda.toBuffer()],
     new PublicKey(NEXT_PUBLIC_SC_ADDRESS)
   );
-  const [stakingTokenDataPda] = await PublicKey.findProgramAddress(
+  const [stakingTokenDataPda] = PublicKey.findProgramAddressSync(
     [Buffer.from("tokendata"), stakingTokenMintAddress.toBuffer()],
     new PublicKey(NEXT_PUBLIC_SC_ADDRESS)
   );
 
-  const [metadataPDA] = await PublicKey.findProgramAddress(
+  const [metadataPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from("metadata"), MP_PROGRAM_ID.toBuffer(), stakingTokenMintAddress.toBuffer()],
     MP_PROGRAM_ID
   );
-  const [pda] = await PublicKey.findProgramAddress(
+  const [pda] = PublicKey.findProgramAddressSync(
     [
       Buffer.from("staking"),
       stakingTokenMintAddress.toBuffer(),

@@ -11,6 +11,7 @@ import Container from "../../../components/__UI/Container";
 import H1 from "../../../components/__UI/H1";
 import Loading from "../../../components/__UI/Loading";
 import { getMetaData, getNftMetadataFromUri } from "../../../services/nft.service";
+import { buildSpaceURL } from "../../../services/util.service";
 import CollectionContext from "./context";
 
 type Props = {
@@ -65,10 +66,7 @@ const CollectionLayout = ({ children, params: { address } }: Props & { children:
           )}
         </div>
         <div className="absolute inset-0 flex items-center justify-center group-hover:bg-[#0C1226BF] transition-colors duration-500">
-          <Button
-            href={`https://app.brolab.io/room/gallery-2?network=${process.env.NEXT_PUBLIC_NETWORK}&collection=${collection.mint}`}
-            target="_blank"
-          >
+          <Button href={buildSpaceURL(collection.mint.toBase58())} target="_blank">
             VIEW COLLECTION IN 3D MODE
           </Button>
         </div>
@@ -87,7 +85,7 @@ const CollectionLayout = ({ children, params: { address } }: Props & { children:
         </div>
       </div>
       <Container className="py-48">
-        <CollectionItemTabs owner={collection.updateAuthority} />
+        <CollectionItemTabs address={address} owner={collection.updateAuthority} />
         {children}
       </Container>
     </CollectionContext.Provider>

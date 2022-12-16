@@ -6,9 +6,12 @@ type TCreatorShare = {
   share: number;
 };
 
-const CreatorShare = () => {
-  const [creators, setCreators] = useState<TCreatorShare[]>([]);
+type Props = {
+  creators: TCreatorShare[];
+  setCreators: (creators: TCreatorShare[] | ((prev: TCreatorShare[]) => TCreatorShare[])) => void;
+};
 
+const CreatorShare = ({ creators, setCreators }: Props) => {
   const addCreator = useCallback(() => {
     setCreators((prev) => {
       if (prev.length >= 5) {
@@ -16,15 +19,18 @@ const CreatorShare = () => {
       }
       return [...prev, { creator: "", share: 0 }];
     });
-  }, []);
+  }, [setCreators]);
 
-  const removeCreator = useCallback((e: React.MouseEvent<HTMLButtonElement>, index: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCreators((prev) => {
-      return prev.filter((_, i) => i !== index);
-    });
-  }, []);
+  const removeCreator = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>, index: number) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setCreators((prev) => {
+        return prev.filter((_, i) => i !== index);
+      });
+    },
+    [setCreators]
+  );
 
   const handleCreatorChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
@@ -39,15 +45,20 @@ const CreatorShare = () => {
         });
       });
     },
-    []
+    [setCreators]
   );
 
   return (
     <div className="space-y-4">
-      <div>
+      <div className="flex items-center space-x-4">
         <label className="text-white text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] xl:text-[24px] font-bold">
           Creator Share * (Max 5)
         </label>
+        {creators.length < 5 && (
+          <Button type="button" xs onClick={addCreator}>
+            Add Creator
+          </Button>
+        )}
       </div>
       {creators.map((creator, index) => {
         return (
@@ -76,11 +87,6 @@ const CreatorShare = () => {
           </div>
         );
       })}
-      {creators.length < 5 && (
-        <Button type="button" onClick={addCreator}>
-          Add Creator
-        </Button>
-      )}
     </div>
   );
 };

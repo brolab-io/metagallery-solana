@@ -5,6 +5,8 @@ import { ButtonHTMLAttributes, Fragment, PropsWithChildren } from "react";
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   outlined?: boolean;
   sm?: boolean;
+  xs?: boolean;
+  xxs?: boolean;
   href?: string;
   isLoading?: boolean;
   target?: string;
@@ -29,6 +31,8 @@ const Button: React.FC<Props> = ({
   href,
   target,
   sm,
+  xs,
+  xxs,
   isLoading,
   disabled,
   ...props
@@ -45,7 +49,7 @@ const Button: React.FC<Props> = ({
           className,
           "border-primary border-2 text-white uppercase font-bold hover:-translate-y-0.5 transition-transform",
           outlined ? "border-primary" : "bg-primary",
-          sm ? "px-6 py-3" : "px-8 py-3",
+          xxs ? "px-2 py-1.5 text-sm" : xs ? "px-4 py-2" : sm ? "px-6 py-3" : "px-8 py-3",
           "disabled:brightness-75 disabled:cursor-not-allowed"
         )}
       >

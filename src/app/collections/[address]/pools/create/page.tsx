@@ -11,9 +11,9 @@ import { createStakingPool } from "../../../../../services/pool.service";
 import { useCollectionContext } from "../../context";
 
 type FormValues = {
+  id: string;
   name: string;
   rewardPeriod: number;
-  rewardTokenMintAddress: string;
   collection: string;
   poolType: 1;
 };
@@ -33,6 +33,7 @@ const breadCrumbItems = [
 const CreatePoolPage: React.FC<Props> = ({ params: { address } }) => {
   const { register, handleSubmit, watch } = useForm<FormValues>({
     defaultValues: {
+      id: "",
       name: "",
       rewardPeriod: 60,
       collection: address,
@@ -103,27 +104,30 @@ const CreatePoolPage: React.FC<Props> = ({ params: { address } }) => {
     <Container className="pb-6 sm:pb-8 md:pb-12 lg:pb-16 xl:pb-20">
       <BreadCrumb items={breadCrumbItems} />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col space-y-6 text-white">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex flex-col mt-8 space-y-6 text-white md:mt-12 lg:mt-16 xl:mt-20"
+      >
         <LableInput
-          label="Name *"
-          placeholder="Name of the nft (e.g. My NFT)"
-          {...register("name", {
-            required: "Name is required",
+          label="Pool indentifier *"
+          placeholder="Unique identifier for the pool (e.g. cool-pool-1)"
+          {...register("id", {
+            required: "Id is required",
             maxLength: {
-              value: 32,
-              message: "Name must be less than 32 characters",
+              value: 16,
+              message: "Id must be less than 16 characters",
             },
           })}
         />
 
         <LableInput
-          label="Reward Token *"
-          placeholder="Reward Token Mint Address"
-          {...register("rewardTokenMintAddress", {
-            required: "Symbol is required",
+          label="Name *"
+          placeholder="Name of the Pool (e.g. My Pool)"
+          {...register("name", {
+            required: "Name is required",
             maxLength: {
-              value: 10,
-              message: "Name must be less than 10 characters",
+              value: 16,
+              message: "Name must be less than 16 characters",
             },
           })}
         />
@@ -136,10 +140,6 @@ const CreatePoolPage: React.FC<Props> = ({ params: { address } }) => {
             min: {
               value: 0,
               message: "Seller Fee Basis Points must be greater than 0",
-            },
-            max: {
-              value: 100,
-              message: "Seller Fee Basis Points must be less than 100",
             },
             valueAsNumber: true,
           })}

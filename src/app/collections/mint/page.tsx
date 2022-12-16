@@ -10,9 +10,10 @@ import LableInput from "../../../components/__UI/LableInput";
 import { checkCollection, mint } from "../../../services/nft.service";
 import { toast } from "react-toastify";
 import BoxFrame from "../../../components/__UI/BoxFrame";
-import { uploadMetadata } from "../../../services/ipfs/upload";
-import { buildMetadata } from "../../../services/util.service";
+import { uploadMetadata, uploadMetadataUsingMetaplex } from "../../../services/ipfs/upload";
+import { buildMetadata, buildTxnUrl } from "../../../services/util.service";
 import CreatorShare from "../../../components/__UI/CreatorShare";
+import { useRouter } from "next/navigation";
 
 type CreatorShare = {
   creator: string;
@@ -42,14 +43,21 @@ const breadCrumbItems = [
 ];
 
 const MintCollectionPage: React.FC = () => {
+  const [creators, setCreators] = useState<CreatorShare[]>([]);
+
   // ### FORM
   const [isLoading, setIsLoading] = useState(false);
-  const { register, handleSubmit, watch } = useForm<FormValues>({
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<FormValues>({
     defaultValues: {
       collection: "",
-      name: "Collection X",
+      name: "",
       uri: "",
-      symbol: "COLX",
+      symbol: "",
       sellerFeeBasisPoints: 0,
       size: 1,
       isMasterCollection: true,
@@ -65,6 +73,16 @@ const MintCollectionPage: React.FC = () => {
     fileInputRef.current?.click();
   }, []);
 
+  const checkCreatorShare = (creators: CreatorShare[]): boolean => {
+    return !creators || !creators.length || creators.reduce((s, i) => s + i.share, 0) === 100;
+  };
+
+  const router = useRouter();
+
+  const navigateToCollectionsPage = useCallback(() => {
+    router.push("/collections");
+  }, [router]);
+
   const onSubmit = useCallback(
     async (data: FormValues) => {
       setIsLoading(true);
@@ -79,12 +97,23 @@ const MintCollectionPage: React.FC = () => {
       try {
         const isCollection =
           !data.collection || (await checkCollection(connection, data.collection));
+
         if (!isCollection) {
           toast.error("Collection is not valid");
           return;
         }
 
-        toastId = toast.info("Minting collection, please wait...", {
+        const checkShare: boolean = checkCreatorShare(creators);
+        if (!checkShare) {
+          throw new Error(`Creators, if set, must have 100 shares in total`);
+        }
+
+        if (!data.files.length) {
+          toast.error("Please select a file to upload");
+          return;
+        }
+
+        toastId = toast.info("Uploading metadata, please wait...", {
           autoClose: false,
           isLoading: true,
         });
@@ -93,22 +122,21 @@ const MintCollectionPage: React.FC = () => {
           name: data.name,
           symbol: data.symbol,
           fileType: data.files[0].type,
-          description: `NFT for BigRich`,
+          description: `Collection of Metagallery`,
           seller_fee_basis_points: data.sellerFeeBasisPoints,
-          creators: data.creators,
+          creators,
         });
 
-        const url = await uploadMetadata(data.files[0], metadata);
-        data.uri = url;
+        data.uri = await uploadMetadataUsingMetaplex(connection, provider, data.files, metadata);
+
+        toast.update(toastId, {
+          render: "Minting collection, please wait...",
+        });
 
         const txid = await mint("collection", provider, [data], connection);
         toast.update(toastId, {
           render: (
-            <a
-              target="_blank"
-              href={`https://explorer.solana.com/tx/${txid}?cluster=devnet`}
-              rel="noreferrer"
-            >
+            <a target="_blank" href={buildTxnUrl(txid)} rel="noreferrer">
               Collection minted successfully, View on Solana Explorer
             </a>
           ),
@@ -116,7 +144,7 @@ const MintCollectionPage: React.FC = () => {
           isLoading: false,
           autoClose: 3000,
         });
-        console.log(txid);
+        navigateToCollectionsPage();
       } catch (error) {
         console.warn(error);
         if (toastId) {
@@ -133,7 +161,7 @@ const MintCollectionPage: React.FC = () => {
         setIsLoading(false);
       }
     },
-    [connection, provider]
+    [provider, connection, creators, navigateToCollectionsPage]
   );
 
   const { ref: fileRef, ...fields } = register("files");
@@ -184,6 +212,7 @@ const MintCollectionPage: React.FC = () => {
               message: "Name must be less than 32 characters",
             },
           })}
+          error={errors.name?.message}
         />
 
         <LableInput
@@ -196,6 +225,7 @@ const MintCollectionPage: React.FC = () => {
               message: "Name must be less than 10 characters",
             },
           })}
+          error={errors.symbol?.message}
         />
 
         <LableInput
@@ -208,16 +238,17 @@ const MintCollectionPage: React.FC = () => {
               message: "Seller Fee Basis Points must be greater than 0",
             },
             max: {
-              value: 100,
+              value: 10000,
               message: "Seller Fee Basis Points must be less than 100",
             },
             valueAsNumber: true,
           })}
           type="number"
+          error={errors.sellerFeeBasisPoints?.message}
         />
 
         <LableInput
-          label="Collection address *"
+          label="Collection address"
           placeholder="Collection address"
           {...register("collection", {})}
         />
@@ -234,9 +265,10 @@ const MintCollectionPage: React.FC = () => {
             valueAsNumber: true,
           })}
           type="number"
+          error={errors.size?.message}
         />
 
-        <CreatorShare />
+        <CreatorShare creators={creators} setCreators={setCreators} />
 
         <Button className="self-start" type="submit" disabled={isLoading}>
           <span className="ml-2">{isLoading ? "Minting..." : "Mint"}</span>

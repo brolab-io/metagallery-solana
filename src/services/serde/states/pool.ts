@@ -1,49 +1,58 @@
-import BN from 'bn.js';
-import * as borsh from 'borsh';
+import { PublicKey } from "@solana/web3.js";
+import BN from "bn.js";
+import * as borsh from "borsh";
 
 export type TPool = {
-  name: Uint8Array,
-  accountType: number,
-  totalDepositedPower: BN,
-  rewardPeriod: BN,
-  startAt: BN,
-  rewardTokenMintAddress: Uint8Array,
-  rewardAta: Uint8Array,
-  poolType: number,
-  creator: Uint8Array,
-  colletion: Uint8Array,
-}
+  id: Uint8Array;
+  name: Uint8Array;
+  accountType: number;
+  totalDepositedPower: BN;
+  rewardPeriod: BN;
+  startAt: BN;
+  poolType: number;
+  creator: Uint8Array;
+  collection: Uint8Array;
+};
+
+export type TReadablePool = {
+  id: string;
+  name: string;
+  accountType: number;
+  totalDepositedPower: BN;
+  rewardPeriod: BN;
+  startAt: BN;
+  poolType: number;
+  creator: string;
+  collection: string;
+};
 export class Pool {
+  id;
+
   name;
 
   accountType;
 
   totalDepositedPower;
-  
+
   rewardPeriod;
-  
+
   startAt;
-  
-  rewardTokenMintAddress;
-  
-  rewardAta: Uint8Array;
-  
+
   poolType;
 
   creator: Uint8Array;
-  
+
   collection: Uint8Array;
 
   constructor(fields: TPool) {
     this.accountType = fields.accountType;
+    this.id = fields.id;
     this.name = fields.name;
     this.totalDepositedPower = fields.totalDepositedPower;
     this.rewardPeriod = fields.rewardPeriod;
     this.startAt = fields.startAt;
-    this.rewardTokenMintAddress = fields.rewardTokenMintAddress;
-    this.rewardAta = fields.rewardAta;
     this.creator = fields.creator;
-    this.collection = fields.colletion;
+    this.collection = fields.collection;
     this.poolType = fields.poolType;
   }
 
@@ -54,21 +63,52 @@ export class Pool {
   static deserialize(raw: Buffer): Pool {
     return borsh.deserialize(PoolSchema, Pool, raw);
   }
+
+  static deserializeToReadable(raw: Buffer): TReadablePool {
+    const {
+      id,
+      name,
+      accountType,
+      totalDepositedPower,
+      rewardPeriod,
+      startAt,
+      poolType,
+      creator,
+      collection,
+    } = borsh.deserialize(PoolSchema, Pool, raw);
+
+    // console.log(borsh.deserialize(PoolSchema, Pool, raw));
+
+    return {
+      id: Buffer.from(id).toString(),
+      name: Buffer.from(name).toString(),
+      accountType,
+      totalDepositedPower,
+      rewardPeriod,
+      startAt,
+      poolType,
+      creator: new PublicKey(creator).toBase58(),
+      collection: new PublicKey(collection).toBase58(),
+    };
+  }
 }
 
-export const PoolSchema = new Map([[Pool, {
-  kind: 'struct',
-  fields: [
-    ['accountType', 'u8'],
-    ['name', [16]],
-    ['totalDepositedPower', 'u64'],
-    ['rewardPeriod', 'u64'],
-    ['startAt', 'u64'],
-    ['rewardTokenMintAddress', [32]],
-    ['rewardAta', [32]],
-    ['poolType', 'u8'],
-    ['creator', [32]],
-    ['collection', [32]],
+export const PoolSchema = new Map([
+  [
+    Pool,
+    {
+      kind: "struct",
+      fields: [
+        ["accountType", "u8"],
+        ["id", [16]],
+        ["name", [16]],
+        ["totalDepositedPower", "u64"],
+        ["rewardPeriod", "u64"],
+        ["startAt", "u64"],
+        ["poolType", "u8"],
+        ["creator", [32]],
+        ["collection", [32]],
+      ],
+    },
   ],
-}],
 ]);
