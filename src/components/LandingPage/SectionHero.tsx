@@ -1,8 +1,11 @@
+"use client";
 /* eslint-disable @next/next/no-img-element */
+import { useWallet } from "@solana/wallet-adapter-react";
 import Button from "../__UI/Button";
 import Container from "../__UI/Container";
 
 const SectionHero = () => {
+  const { connected } = useWallet();
   return (
     <div className="min-h-[calc(100vh-108px)] bg-[url(/assets/images/section.jpg)] relative">
       <div className="absolute inset-0">
@@ -13,8 +16,10 @@ const SectionHero = () => {
               DISPLAY NFTS IN METAVERSE
             </h2>
             <div className="mt-8 space-x-5">
-              <Button>Connect Wallet</Button>
-              <Button outlined>EXPLORE</Button>
+              {!connected && <Button>Connect Wallet</Button>}
+              <Button href="/explore" outlined>
+                EXPLORE
+              </Button>
             </div>
           </div>
         </Container>
