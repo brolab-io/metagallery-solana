@@ -96,6 +96,15 @@ const Navbar = () => {
           <Button xxs href="/collections" className="rounded-sm whitespace-nowrap">
             Create Collection
           </Button>
+          <Button
+            outlined
+            xxs
+            href="https://me.brolab.io"
+            target="_blank"
+            className="rounded-sm whitespace-nowrap"
+          >
+            Magiceden Tool
+          </Button>
         </div>
         {mounted && <SolanaConnectButton />}
       </Container>
