@@ -1,34 +1,37 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+Metagallery-Solana
+Metagallery-Solana is a decentralized art gallery built on the Solana blockchain. The project aims to provide a platform where artists and collectors can interact and trade art without the need for intermediaries. The use of the Solana blockchain ensures the authenticity and scarcity of the artworks, making the platform secure and transparent.
 
-## Getting Started
+Getting Started
+These instructions will help you set up a local instance of the Metagallery-Solana project for development and testing purposes.
 
-First, run the development server:
+Prerequisites
+To run this project, you will need the following software installed on your system:
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+Node.js
+Yarn
+Docker
+Docker Compose
+Installing
+Follow the steps below to set up the Metagallery-Solana project:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Clone the repository:
+bash
+Copy code
+git clone https://github.com/brolab-io/metagallery-solana.git
+Navigate to the project directory:
+bash
+Copy code
+cd metagallery-solana
+Install the dependencies:
+Copy code
+yarn install
+Start the development environment using Docker Compose:
+Copy code
+docker-compose up
+This will start a local instance of the Metagallery-Solana project, and you should be able to access it at http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Contributing
+If you would like to contribute to the development of Metagallery-Solana, please refer to the contributing guidelines for information on how to get involved.
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+License
+Metagallery-Solana is open-source software licensed under the MIT License.
